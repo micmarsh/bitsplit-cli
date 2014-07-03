@@ -13,11 +13,14 @@
     (print prompt)
     (flush)
     (read-line))
+
 (def read-in (partial read-prompt "bitsplit> "))
+
 (defn exit? [command]
     (->> "exit"
           seq
           (= (take 4 command))))
+
 (defn start-repl []
     (loop []
         (let [command (read-in)]
