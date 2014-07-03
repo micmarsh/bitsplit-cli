@@ -33,10 +33,16 @@
 (defn -main [& args]
     (if (empty? args)
         (start-repl) 
-        (println "empty" args)))
+        (execute {
+            :storage storage
+            :command (->> args
+                        (map #(str % " "))
+                        (apply str))
+            :client client
+            })))
 
 ; A plan:
-;  define a spec for the shell, then functions to handle each commmand
+;  define a spec for the shell, then functions to handle each command
 ;  then, just stick things in a loop and you're good. some kind 
 ;  of rpc-daemonization would be dope, too
 
