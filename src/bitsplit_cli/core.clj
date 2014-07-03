@@ -43,11 +43,3 @@
                         (apply str))
             :client client
             })))
-
-; A plan:
-;  define a spec for the shell, then functions to handle each command
-;  then, just stick things in a loop and you're good. some kind 
-;  of rpc-daemonization would be dope, too
-
-; the spec
-; 

@@ -13,26 +13,26 @@
 (swap! commands assoc 
     "list"
         (fn [{:keys [client storage]} which]
-            (println 
-                (case which
-                    "addresses"
-                        (addresses client)
-                    "splits"
-                        (all storage))))
+            (case which
+                "addresses"
+                    (addresses client)
+                "splits"
+                    (all storage)))
     "split" 
         (fn [{:keys [client storage]}
              from to percentage]
-            (println from to percentage)))
+            (str from \space to \space percentage)))
 
-(def prstr (comp println str))
 
-(defn execute [{:keys [command] :as system}]
+(defn- -execute [{:keys [command] :as system}]
     (let [[cmd & args] (split-cmd command)
           method (@commands cmd)]
         (if method
             (try
                 (apply method system args)
             (catch clojure.lang.ArityException e 
-                (prstr "Incorrect number of arguments ("
+                (str "Incorrect number of arguments ("
                         (count args) ") for \"" cmd "\"")))
-            (prstr "No such command: \"" cmd \"))))
+            (str "No such command: \"" cmd \"))))
+
+(def execute (comp println -execute))
