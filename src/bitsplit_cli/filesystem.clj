@@ -12,7 +12,7 @@
 
 (defn read-file 
     ([filename]
-        (try-file filename { }))
+        (read-file filename { }))
     ([filename default]
         (if (= filename "FAKE")
             @fake-file
@@ -24,7 +24,7 @@
 (defn write-file [filename data]
     (if (= filename "FAKE")
         (reset! fake-file data)
-        (spit location data)))
+        (spit filename data)))
 
 (defrecord File [location]
     Storage
@@ -34,11 +34,12 @@
         (let [full-splits (all this)]
             (get full-splits address)))
     (save! [this address splits]
-        (let [new-data (assoc data address splits)]
+        (let [data (all this)
+              new-data (assoc data address splits)]
             (write-file location new-data)
             (select-keys new-data [address])))
     (delete! [this address]
-        (let [new-data (dissoc data address)]
+        (let [data (all this)
+              new-data (dissoc data address)]
             (write-file location new-data)
-            (select-keys new-data [address])))
-    
+            (select-keys new-data [address]))))

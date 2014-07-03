@@ -1,10 +1,7 @@
 (ns bitsplit-cli.core
     (:use bitsplit.client.protocol
-          bitsplit.storage.protocol))
+          bitsplit-cli.filesystem))
 
-(defn foo
-  "I don't do a whole lot."
-  [& x]
-  (println x "Hello, World!"))
-
-(def -main foo)
+(defn -main [& args]
+    (let [fs (->File "FAKE")]
+        (println fs)))
