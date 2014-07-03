@@ -1,6 +1,7 @@
 (ns bitsplit-cli.core
     (:use bitsplit.client.protocol
           bitsplit.storage.protocol
+          bitsplit-cli.bitcoind
           bitsplit-cli.filesystem))
 
 (defn -main [& args]
