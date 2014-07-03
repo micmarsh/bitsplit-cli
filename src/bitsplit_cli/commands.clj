@@ -1,32 +1,32 @@
 (ns bitsplit-cli.commands
     (:use clojure.string
           bitsplit.client.protocol
-          bitsplit.storage.protocol))
+          bitsplit.storage.protocol
+          bitsplit-cli.display))
 
 (defn split-cmd [command]
     (-> command
         trim
         (split #" +")))
 
-(def ^:private commands (atom { }))
+(def last-rendered (atom nil))
 
-(swap! commands assoc 
+(def commands {
     "list"
-        (fn [{:keys [client storage]} which]
-            (case which
-                "addresses"
-                    (addresses client)
-                "splits"
-                    (all storage)))
+        (fn [{:keys [client storage]}]
+            (->> storage
+                all
+                (render last-rendered)))
     "split" 
         (fn [{:keys [client storage]}
              from to percentage]
-            (str from \space to \space percentage)))
+            (str from \space to \space percentage))
+    })
 
 
 (defn- -execute [{:keys [command] :as system}]
     (let [[cmd & args] (split-cmd command)
-          method (@commands cmd)]
+          method (commands cmd)]
         (if method
             (try
                 (apply method system args)
