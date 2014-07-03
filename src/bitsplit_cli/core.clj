@@ -5,25 +5,35 @@
           bitsplit-cli.bitcoind
           bitsplit-cli.filesystem))
 
+
+(def storage (->File "FAKE"))
+(def client (->Bitcoind ""))
+
 (defn read-prompt [prompt]
     (print prompt)
     (flush)
     (read-line))
-
 (def read-in (partial read-prompt "bitsplit> "))
-
+(defn exit? [command]
+    (->> "exit"
+          seq
+          (= (take 4 command))))
 (defn start-repl []
     (loop []
-        (let [commmand (read-in)]
-            (if-not (= commmand "exit")
+        (let [command (read-in)]
+            (if-not (exit? command)
                 (do 
-                    (println "sup" commmand) 
+                    (execute {
+                        :storage storage
+                        :command command
+                        :client client
+                        }) 
                     (recur))))))
 
 (defn -main [& args]
-    (if (empty? args) 
-        (println "empty" args)
-        (start-repl)))
+    (if (empty? args)
+        (start-repl) 
+        (println "empty" args)))
 
 ; A plan:
 ;  define a spec for the shell, then functions to handle each commmand
