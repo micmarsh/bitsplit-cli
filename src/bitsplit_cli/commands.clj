@@ -3,6 +3,7 @@
           clojure.string
           bitsplit.client.protocol
           bitsplit.storage.protocol
+          bitsplit-cli.addresses
           bitsplit-cli.display))
 
 (defn split-cmd [command]
@@ -21,7 +22,10 @@
     "split" 
         (fn [{:keys [client storage]}
              from to percentage]
-            (let ))
+            (let [from-addr (parse-address @last-rendered from)
+                  addr-info (@last-rendered from)
+                  to-addr (parse-address (:to addr-info) to)]
+                (str from-addr \space to-addr)))
     })
 
 
