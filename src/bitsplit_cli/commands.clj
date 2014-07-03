@@ -1,5 +1,6 @@
 (ns bitsplit-cli.commands
-    (:use clojure.string
+    (:use [bitsplit.core :only (add-address! remove-address!)]
+          clojure.string
           bitsplit.client.protocol
           bitsplit.storage.protocol
           bitsplit-cli.display))
@@ -20,7 +21,7 @@
     "split" 
         (fn [{:keys [client storage]}
              from to percentage]
-            (str from \space to \space percentage))
+            (let ))
     })
 
 
