@@ -1,48 +1,34 @@
 (ns bitsplit-cli.display)
 
-(defn enumerate [things]
-    (map-indexed vector things))
-
-(defn address-info [[from addresses]]
-    {:address from
-     :to (apply merge
-            (for [[i info] (enumerate addresses)]
-                {(str i) info}))})
-
-(defn percent->string [big-dec]
+(defn show-percent [big-dec]
     (-> big-dec
         (* 100)
         (str "% ")))
 
-(defn- info->string [[index [address percent]]]
-    (str "    "
-         "(" index ") "
-         address " " (percent->string percent)
-         \newline))
-
-(defn- render-pair->string [[index info]]
-    (apply str "(" index ") " 
-        (:address info) 
-        \newline
-        (map info->string 
-            (:to info))))
-
-(defn renderable->string [renderable]
-    (->> renderable
-        (map render-pair->string)
-        (apply str)))
-
-(defn splits->renderable [splits]
-    (apply merge
-        (for [[i addresses] (enumerate splits)]
-            {(str i) (address-info addresses)})))
-
 (def unique-index 
     (let [index (atom 0)]
-    (memoize (fn [item] (swap! index inc)))))
+    (memoize (fn [_] (swap! index inc)))))
 
-(defn render [last-rendered splits]
-    (->> splits
-        splits->renderable
-        (reset! last-rendered)
-        renderable->string))
+
+(defn- show-address [shortcuts address]
+    (let [i (unique-index address)]
+        (swap! shortcuts assoc (str i) address)
+        (str \( i \) " " address)))
+
+(defn- show-addresses [shortcuts [address percent]]
+    (str "    " 
+        (show-address shortcuts address) 
+        " "  (show-percent percent)
+        \newline))
+
+; todo given the existence of unique id, can do this in a very simple way
+(defn- show-splits [shortcuts [address children]]
+    (apply str 
+        (show-address shortcuts address)
+        \newline
+        (map (partial show-addresses shortcuts) children)))
+
+
+(defn render [shortcuts splits]
+    (apply str
+        (map (partial show-splits shortcuts) splits)))
