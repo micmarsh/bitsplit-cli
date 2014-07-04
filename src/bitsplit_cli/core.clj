@@ -22,6 +22,11 @@
           (= (take 4 command))))
 
 (defn start-repl []
+    (execute {
+        :storage storage
+        :command "list"
+        :client client
+        })
     (loop []
         (let [command (read-in)]
             (if-not (exit? command)

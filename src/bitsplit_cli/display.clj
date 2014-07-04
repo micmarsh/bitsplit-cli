@@ -37,6 +37,10 @@
         (for [[i addresses] (enumerate splits)]
             {(str i) (address-info addresses)})))
 
+(def unique-index 
+    (let [index (atom 0)]
+    (memoize (fn [item] (swap! index inc)))))
+
 (defn render [last-rendered splits]
     (->> splits
         splits->renderable

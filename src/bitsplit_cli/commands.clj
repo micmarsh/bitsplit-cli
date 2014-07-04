@@ -13,7 +13,7 @@
 
 (def last-rendered (atom nil))
 
-(def commands {
+(def ^:private commands {
     "list"
         (fn [{:keys [client storage]}]
             (->> storage
@@ -22,9 +22,8 @@
     "split" 
         (fn [{:keys [client storage]}
              from to percentage]
-            (let [from-addr (parse-address @last-rendered from)
-                  addr-info (@last-rendered from)
-                  to-addr (parse-address (:to addr-info) to)]
+            (let [[from-addr sub] (split-address from @last-rendered)
+                  [to-addr _] (sub-address to sub)]
                 (str from-addr \space to-addr)))
     })
 
