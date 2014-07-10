@@ -5,7 +5,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/core.async "0.1.267.0-0d7780-alpha"]
                  [org.clojure/clojure "1.6.0"]
-                 [bitsplit-core "0.1.2"]
+                 [bitsplit-core "0.1.6"]
 
                  ;clj-btc
                  [http-kit "2.1.11"]
