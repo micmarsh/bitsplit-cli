@@ -7,24 +7,14 @@
 (def prompt (js/require "prompt"))
 (set! (.-message prompt) "")
 (set! (.-delimiter prompt) "")
+(set! (.-colors prompt) false)
 
 (def storage (->File "FAKE"))
 ; (def client (->Bitcoind ""))
 
-(defn node->channel [function]
-    (fn [& args]
-        (let [return (chan 1)
-              into-chan 
-                (fn [err result]
-                    (if-not (nil? err)
-                        (put! return {:error err})
-                        (put! return result)))]
-        (apply function (concat args [into-chan]))
-        return)))
-
-(defn read-prompt [p]
+(defn- read-prompt [message]
     (let [return (chan 1)]
-        (.get prompt p
+        (.get prompt message
             (fn [err input]
                 (put! return 
                     (aget input p))))
