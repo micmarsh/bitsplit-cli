@@ -1,15 +1,13 @@
 (ns bitsplit-cli.commands
     (:use [bitsplit.core :only (add-address! remove-address!)]
-          clojure.string
-          bitsplit.client.protocol
-          bitsplit.storage.protocol
-          bitsplit-cli.addresses
-          bitsplit-cli.display))
+          [bitsplit.storage.protocol :only (all)]
+          [bitsplit-cli.addresses :only (split-address sub-address)] 
+          [bitsplit-cli.display :only (render)]))
 
 (defn split-cmd [command]
     (-> command
-        trim
-        (split #" +")))
+        (.trim)
+        (.split #" +")))
 
 (def last-rendered (atom nil))
 
