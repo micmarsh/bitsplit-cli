@@ -24,7 +24,8 @@
                     (put! return (amounts @index))
                     (swap! index inc)
                     (swap! index #(mod % 3)))
-                1000)))
+                1000)
+            return))
     Operations
     (send-amounts! [this amounts])
     (new-address! [this]))
