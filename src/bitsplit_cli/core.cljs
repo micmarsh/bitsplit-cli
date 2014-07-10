@@ -9,6 +9,17 @@
 (def storage (->File "FAKE"))
 ; (def client (->Bitcoind ""))
 
+(defn node->channel [function]
+    (fn [& args]
+        (let [return (chan 1)
+              into-chan 
+                (fn [err result]
+                    (if-not (nil? err)
+                        (put! return {:error err})
+                        (put! return result)))]
+        (apply function (concat args [into-chan])))))
+
+
 (defn read-prompt [p]
     (let [return (chan 1)]
         (.get prompt p
