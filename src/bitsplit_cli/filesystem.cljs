@@ -1,5 +1,7 @@
 (ns bitsplit-cli.filesystem
-    (:use bitsplit.storage.protocol))
+    (:use 
+        [bitsplit.storage.protocol 
+            :only (Storage all lookup save! delete!)]))
 (def fs (js/require "fs"))
 
 (def HOME 
@@ -12,12 +14,13 @@
 (def DEFAULT_LOCATION (str DIR "splits"))
 
 
-(def fake-file (atom 
-    { "dke98di398fdjr98feijr3oifsoij"
-        {"dlkjf98398jdlkjrewoiufdz" 0.2M "8328ff98rw98fs98r3" 0.05M
-         "kd98e8fue7fd87f7eu3u848" 0.75M} 
-      "kdi9d9ekdkjeufjeueudjudd" {"dlfjoiduwoieu98jkLJKDO" 0.6M
-         "zsddddddudfoiudsoiajflk" 0.4M}}))
+(def fake-file 
+    (atom 
+        { "dke98di398fdjr98feijr3oifsoij"
+            {"dlkjf98398jdlkjrewoiufdz" 0.2 "8328ff98rw98fs98r3" 0.05
+             "kd98e8fue7fd87f7eu3u848" 0.75} 
+          "kdi9d9ekdkjeufjeueudjudd" {"dlfjoiduwoieu98jkLJKDO" 0.6
+             "zsddddddudfoiudsoiajflk" 0.4}}))
 
 (defn read-file 
     ([filename]
