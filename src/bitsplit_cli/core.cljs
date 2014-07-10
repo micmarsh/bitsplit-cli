@@ -5,6 +5,8 @@
     (:use-macros 
         [cljs.core.async.macros :only (go-loop)]))
 (def prompt (js/require "prompt"))
+(set! (.-message prompt) "")
+(set! (.-delimiter prompt) "")
 
 (def storage (->File "FAKE"))
 ; (def client (->Bitcoind ""))
@@ -22,7 +24,7 @@
 
 (defn read-prompt [p]
     (let [return (chan 1)]
-        (.getLine prompt p
+        (.get prompt p
             (fn [err input]
                 (put! return 
                     (aget input p))))
