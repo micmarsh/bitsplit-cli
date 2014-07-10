@@ -7,6 +7,7 @@
 
 (def unique-index 
     (let [index (atom 0)]
+    ; TODO smarter memoize/cache that won't grow forever
     (memoize (fn [_] (swap! index inc)))))
 
 
