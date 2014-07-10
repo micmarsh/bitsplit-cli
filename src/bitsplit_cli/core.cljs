@@ -17,8 +17,8 @@
                     (if-not (nil? err)
                         (put! return {:error err})
                         (put! return result)))]
-        (apply function (concat args [into-chan])))))
-
+        (apply function (concat args [into-chan]))
+        return)))
 
 (defn read-prompt [p]
     (let [return (chan 1)]
