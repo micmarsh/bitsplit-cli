@@ -1,7 +1,6 @@
 (ns bitsplit-cli.commands
     (:use [bitsplit.core :only (add-address! remove-address!)]
           [bitsplit.storage.protocol :only (all)]
-          [bitsplit-cli.addresses :only (split-address sub-address)] 
           [bitsplit-cli.display :only (render)]))
 
 (defn split-cmd [command]
@@ -20,9 +19,7 @@
     "split" 
         (fn [{:keys [client storage]}
              from to percentage]
-            (let [[from-addr sub] (split-address from @last-rendered)
-                  [to-addr _] (sub-address to sub)]
-                (str from-addr \space to-addr)))
+            "sup, split")
     })
 
 (defn- arity? [method args]
