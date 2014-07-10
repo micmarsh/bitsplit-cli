@@ -27,16 +27,23 @@
                 (str from-addr \space to-addr)))
     })
 
+(defn- arity? [method args]
+    (= (.-length method) (count args)))
+
+(def ^:private bad-args? (comp not arity?))
 
 (defn- -execute [{:keys [command] :as system}]
     (let [[cmd & args] (split-cmd command)
           method (commands cmd)]
-        (if method
-            (try
-                (apply method system args)
-            (catch clojure.lang.ArityException e 
+        (cond 
+            (nil? method)
+                (str "No such command: \"" cmd \")
+            (bad-args? method (cons system args))
                 (str "Incorrect number of arguments ("
-                        (count args) ") for \"" cmd "\"")))
-            (str "No such command: \"" cmd \"))))
+                    (count args) ") for \"" cmd "\"")
+            :else
+                (apply method system args))))
+
+(enable-console-print!)
 
 (def execute (comp println -execute))
