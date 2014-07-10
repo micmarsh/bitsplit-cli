@@ -22,7 +22,7 @@
 
 (defn read-prompt [p]
     (let [return (chan 1)]
-        (.get prompt p
+        (.getLine prompt p
             (fn [err input]
                 (put! return 
                     (aget input p))))
@@ -62,5 +62,4 @@
             ; :client client
             })))
 
-(apply -main 
-    (-> js/process (.-argv) (.slice 2)))
+(set! *main-cli-fn* -main)

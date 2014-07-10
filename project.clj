@@ -24,7 +24,7 @@
               :compiler {
                 :output-to "target/main.js"
                 :target :nodejs
-                :optimizations :whitespace
+                :optimizations :simple
                 :pretty-print true}}]}
     }
 })
