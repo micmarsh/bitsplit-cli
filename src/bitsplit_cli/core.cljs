@@ -1,19 +1,13 @@
 (ns bitsplit-cli.core
     (:use [cljs.core.async :only (chan put! <!)]
-          bitsplit.client.protocol
-          bitsplit.storage.protocol
-          bitsplit-cli.commands
-          bitsplit-cli.bitcoind
-          bitsplit-cli.filesystem)
+          [bitsplit.storage.protocol :only (->File)]
+          [bitsplit-cli.commands :only (execute)])
     (:use-macros 
         [cljs.core.async.macros :only (go-loop)]))
-
 (def prompt (js/require "prompt"))
 
 (def storage (->File "FAKE"))
 ; (def client (->Bitcoind ""))
-
-
 
 (defn read-prompt [p]
     (let [return (chan 1)]
