@@ -28,10 +28,9 @@
     ([filename default]
         (if (= filename "FAKE")
             @fake-file
-            (try 
+            (if (.existsSync fs filename)
                 (.readFileSync fs filename)
-            (catch e
-                default)))))
+                default))))
 
 (defn write-file [filename data]
     (if (= filename "FAKE")

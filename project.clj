@@ -23,6 +23,7 @@
               :source-paths ["src"]
               :compiler {
                 :output-to "target/main.js"
+                :target :nodejs
                 :optimizations :whitespace
                 :pretty-print true}}]}
     }
