@@ -38,6 +38,7 @@
           (= (take 4 command))))
 
 (defn start-repl []
+    (.start prompt)
     (execute {
         :storage storage
         :command "list"
