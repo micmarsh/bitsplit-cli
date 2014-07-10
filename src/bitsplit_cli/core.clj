@@ -27,16 +27,15 @@
         :command "list"
         :client client
         })
-    (loop []
-        (let [command (read-in)]
-            (if-not (exit? command)
-                (do 
-                    (execute {
-                        :storage storage
-                        :command command
-                        :client client
-                        }) 
-                    (recur))))))
+    (loop [command (read-in)]
+        (if-not (exit? command)
+            (do 
+                (execute {
+                    :storage storage
+                    :command command
+                    :client client
+                    }) 
+                (recur (read-in))))))
 
 (defn -main [& args]
     (if (empty? args)

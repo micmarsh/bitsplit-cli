@@ -12,9 +12,10 @@
         :minconf 1
         :maxconf 9999999))
 
-(defn list-addresses [account]
-    (btc/getaddressesbyaccount
-        :account account))
+(def list-addresses 
+    (partial 
+        btc/getaddressesbyaccount 
+        :account))
 
 (defrecord Bitcoind [account]
     Queries
