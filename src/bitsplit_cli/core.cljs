@@ -1,18 +1,27 @@
 (ns bitsplit-cli.core
-    (:use bitsplit.client.protocol
+    (:use [cljs.core.async :only (chan put! <!)]
+          bitsplit.client.protocol
           bitsplit.storage.protocol
           bitsplit-cli.commands
           bitsplit-cli.bitcoind
-          bitsplit-cli.filesystem))
+          bitsplit-cli.filesystem)
+    (:use-macros 
+        [cljs.core.async.macros :only (go-loop)]))
 
+(def prompt (js/require "prompt"))
 
 (def storage (->File "FAKE"))
-(def client (->Bitcoind ""))
+; (def client (->Bitcoind ""))
 
-(defn read-prompt [prompt]
-    (print prompt)
-    (flush)
-    (read-line))
+
+
+(defn read-prompt [p]
+    (let [return (chan 1)]
+        (.get prompt p
+            (fn [err input]
+                (put! return 
+                    (aget input p))))
+        return))
 
 (def read-in (partial read-prompt "bitsplit> "))
 
@@ -25,9 +34,9 @@
     (execute {
         :storage storage
         :command "list"
-        :client client
+        ; :client client
         })
-    (loop [command (read-in)]
+    (go-loop [command (<! (read-in))]
         (if-not (exit? command)
             (do 
                 (execute {
@@ -35,7 +44,7 @@
                     :command command
                     :client client
                     }) 
-                (recur (read-in))))))
+                (recur (<! (read-in)))))))
 
 (defn -main [& args]
     (if (empty? args)
@@ -45,5 +54,5 @@
             :command (->> args
                         (map #(str % " "))
                         (apply str))
-            :client client
+            ; :client client
             })))

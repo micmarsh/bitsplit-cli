@@ -13,15 +13,17 @@
     :dev {
         :dependencies [[org.clojure/clojurescript "0.0-2268"]]
 
-        :plugins [[lein-cljsbuild "1.0.3"]]
+        :plugins [[lein-cljsbuild "1.0.3"]
+                  [lein-npm "0.4.0"]]
+
+        :node-dependencies [[prompt "0.2.13"]]
 
         :cljsbuild {
           :builds [{
               :source-paths ["target/cljs"]
               :compiler {
-                :output-to "main.js"
+                :output-to "target/main.js"
                 :optimizations :whitespace
-                :pretty-print true}}
-        ]}
+                :pretty-print true}}]}
     }
 })
