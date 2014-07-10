@@ -61,3 +61,5 @@
                         (apply str))
             ; :client client
             })))
+(apply -main 
+    (-> js/process (.-argv) (.slice 2)))

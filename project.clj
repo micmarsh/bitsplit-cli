@@ -7,7 +7,7 @@
                  [org.clojure/clojure "1.6.0"]
                  [bitsplit-core "0.1.7"]]
 
-  :main bitsplit-cli.core
+  :main "target/main.js"
 
   :profiles {
     :dev {
