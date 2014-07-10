@@ -17,9 +17,15 @@
                 all
                 (render last-rendered)))
     "split" 
-        (fn [{:keys [client storage]}
+        (fn [{:keys [client storage] :as system}
              from to percentage]
-            "sup, split")
+            (let [addr1 (or (@last-rendered from) from)
+                  addr2 (or (@last-rendered to) to)]
+                  (add-address! storage
+                    {:parent addr1
+                     :address addr2
+                     :percent (js/Number percentage)})
+                  ((commands "list") system)))
     })
 
 (defn- arity? [method args]

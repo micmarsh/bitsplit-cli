@@ -16,8 +16,9 @@
     (let [return (chan 1)]
         (.get prompt message
             (fn [err input]
-                (put! return 
-                    (aget input p))))
+                (when (-> input nil? not)
+                    (put! return 
+                        (aget input message)))))
         return))
 
 (def read-in (partial read-prompt "bitsplit> "))
