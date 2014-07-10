@@ -1,10 +1,14 @@
 (ns bitsplit-cli.filesystem
     (:use bitsplit.storage.protocol))
+(def fs (js/require "fs"))
 
-
-(def HOME (System/getProperty "user.home"))
+(def HOME 
+    (let [env (.-env js/process)]
+        (or (aget env "HOME") 
+            (aget env "USERPROFILE"))))
 (def DIR (str HOME "/.bitcoin/bitsplit/"))
-(.mkdir (java.io.File. DIR))
+(when (not (.existsSync fs DIR))
+    (.mkdirSync fs DIR 0766))
 (def DEFAULT_LOCATION (str DIR "splits"))
 
 
@@ -22,14 +26,14 @@
         (if (= filename "FAKE")
             @fake-file
             (try 
-                (load-file filename)
-            (catch java.io.FileNotFoundException e
+                (.readFileSync fs filename)
+            (catch e
                 default)))))
 
 (defn write-file [filename data]
     (if (= filename "FAKE")
         (reset! fake-file data)
-        (spit filename data)))
+        (.writeFileSync fs filename data)))
 
 (defrecord File [location]
     Storage

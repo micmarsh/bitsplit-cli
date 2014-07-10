@@ -20,7 +20,7 @@
 
         :cljsbuild {
           :builds [{
-              :source-paths ["target/cljs"]
+              :source-paths ["src"]
               :compiler {
                 :output-to "target/main.js"
                 :optimizations :whitespace
