@@ -1,6 +1,7 @@
 (ns bitsplit-cli.core
     (:use [cljs.core.async :only (chan put! <!)]
           [bitsplit-cli.filesystem :only (->File)]
+          [bitsplit-cli.client :only (->FakeClient)]
           [bitsplit-cli.commands :only (execute)])
     (:use-macros 
         [cljs.core.async.macros :only (go-loop)]))
@@ -10,7 +11,7 @@
 (set! (.-colors prompt) false)
 
 (def storage (->File "FAKE"))
-; (def client (->Bitcoind ""))
+(def client (->FakeClient ""))
 
 (defn- read-prompt [message]
     (let [return (chan 1)]
@@ -33,7 +34,7 @@
     (execute {
         :storage storage
         :command "list"
-        ; :client client
+        :client client
         })
     (go-loop [command (<! (read-in))]
         (if-not (exit? command)
@@ -41,7 +42,7 @@
                 (execute {
                     :storage storage
                     :command command
-                    ; :client client
+                    :client client
                     }) 
                 (recur (<! (read-in)))))))
 
@@ -53,7 +54,7 @@
             :command (->> args
                         (map #(str % " "))
                         (apply str))
-            ; :client client
+            :client client
             })))
 
 (set! *main-cli-fn* -main)
