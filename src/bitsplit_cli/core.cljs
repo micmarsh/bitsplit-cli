@@ -1,5 +1,7 @@
 (ns bitsplit-cli.core
     (:use [cljs.core.async :only (chan put! <!)]
+          [bitsplit.core :only (handle-unspents!)]
+          [bitsplit.client.protocol :only (unspent-channel)]
           [bitsplit-cli.filesystem :only (->File)]
           [bitsplit-cli.client :only (->FakeClient)]
           [bitsplit-cli.commands :only (execute)])
@@ -29,8 +31,14 @@
           seq
           (= (take 4 command))))
 
+(defn- start-forwarding [storage client]
+    (let [unspents (unspent-channel client)]
+        (handle-unspents! client storage unspents)))
+
 (defn start-repl []
     (.start prompt)
+    ; not really tied to repl in long term, but whatever
+    (start-forwarding storage client)
     (execute {
         :storage storage
         :command "list"
