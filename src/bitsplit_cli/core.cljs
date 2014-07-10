@@ -1,6 +1,6 @@
 (ns bitsplit-cli.core
     (:use [cljs.core.async :only (chan put! <!)]
-          [bitsplit.storage.protocol :only (->File)]
+          [bitsplit-cli.filesystem :only (->File)]
           [bitsplit-cli.commands :only (execute)])
     (:use-macros 
         [cljs.core.async.macros :only (go-loop)]))
@@ -47,7 +47,7 @@
                 (execute {
                     :storage storage
                     :command command
-                    :client client
+                    ; :client client
                     }) 
                 (recur (<! (read-in)))))))
 
