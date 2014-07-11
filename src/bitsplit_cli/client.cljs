@@ -61,10 +61,11 @@
         (let [return (chan)]
             (js/setInterval 
                 (fn []
+                    (println "interval")
                     (let [unspent (unspent-amounts this)]
                         (put! return unspent)))
-                1000))
-        return)
+                1000)
+            return))
     Operations
     (send-amounts! [this amounts] (println "sending" amounts))
     (new-address! [this]
@@ -72,8 +73,9 @@
             (str "newest-address" (swap! findex inc)))))
 
 (defn new-client [name]
-    (->Client 
-        (coined #js {:db #js {:type "tiny" :path "tinydb"}
-                 :wallet "coined.json"})))
+    (let [config (clj->js {:db  {:type "tiny" :path "tinydb"}
+                            :wallet "coined.json"})
+          coin (coined config)]
+        (->Client coin)))
 
 (fix-bcoin-issue!)

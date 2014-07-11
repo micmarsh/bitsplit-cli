@@ -45,7 +45,8 @@
         :client client
         })
     (go-loop [command (<! (read-in))]
-        (if-not (exit? command)
+        (if (exit? command)
+            (.exit js/process)
             (do 
                 (execute {
                     :storage storage
