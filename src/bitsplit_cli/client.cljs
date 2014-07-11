@@ -61,9 +61,8 @@
         (let [return (chan)]
             (js/setInterval 
                 (fn []
-                    (println "interval")
                     (let [unspent (unspent-amounts this)]
-                        (put! return unspent)))
+                        (put! return { })))
                 1000)
             return))
     Operations

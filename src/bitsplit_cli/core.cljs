@@ -46,7 +46,8 @@
         })
     (go-loop [command (<! (read-in))]
         (if (exit? command)
-            (.exit js/process)
+            (do (println "Shutting down...")
+                (.exit js/process))
             (do 
                 (execute {
                     :storage storage
