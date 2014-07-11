@@ -66,7 +66,8 @@
                 1000)
             return))
     Operations
-    (send-amounts! [this amounts] (println "sending" amounts))
+    (send-amounts! [this amounts] 
+        (println "sending" amounts))
     (new-address! [this]
         (swap! fake-addresses conj 
             (str "newest-address" (swap! findex inc)))))
