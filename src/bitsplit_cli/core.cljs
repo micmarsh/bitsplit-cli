@@ -3,7 +3,7 @@
           [bitsplit.core :only (handle-unspents!)]
           [bitsplit.client.protocol :only (unspent-channel)]
           [bitsplit-cli.filesystem :only (->File)]
-          [bitsplit-cli.client :only (->FakeClient new-client)]
+          [bitsplit-cli.client :only (new-client)]
           [bitsplit-cli.commands :only (execute)])
     (:use-macros 
         [cljs.core.async.macros :only (go-loop)]))
