@@ -70,7 +70,8 @@
         (println "sending" amounts))
     (new-address! [this]
         (swap! fake-addresses conj 
-            (str "newest-address" (swap! findex inc)))))
+            (str "newest-address" (swap! findex inc)))
+        (@fake-addresses @findex)))
 
 (defn new-client [name]
     (-> {:db  

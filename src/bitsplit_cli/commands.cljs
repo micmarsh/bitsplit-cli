@@ -1,6 +1,7 @@
 (ns bitsplit-cli.commands
     (:use [bitsplit.core :only (add-address! remove-address!)]
-          [bitsplit.storage.protocol :only (all)]
+          [bitsplit.storage.protocol :only (all save!)]
+          [bitsplit.client.protocol :only (new-address!)]
           [bitsplit-cli.display :only (render)]))
 
 (defn split-cmd [command]
@@ -35,10 +36,16 @@
     "split" (partial change-split add-address!)
 
     "unsplit" (partial change-split remove-address!)
+
+    "generate" 
+        (fn [{:keys [client storage] :as system}]
+            (let [address (new-address! client)]
+                (save! storage address { })
+                ((commands "list") system)))
     })
 
 (def ^:private arg-counts 
-    {"list" 0 "split" 3 "unsplit" 2})
+    {"list" 0 "split" 3 "unsplit" 2 "generate" 0})
 
 (defn- arity? [method args]
     (= (arg-counts method) 
