@@ -9,4 +9,8 @@
           valid (select-keys current addrs)]
         (when (not= valid current)
             (doseq [[address splits] valid]
-                (save! client address splits)))))
+                (save! storage address splits)))
+        (when (= 0 (count valid))
+            (doseq [address addrs]
+                ; (println (.stringify js/JSON client))
+                (save! storage address { })))))

@@ -16,6 +16,9 @@
 (def storage (->File "FAKE"))
 (def client (new-client ""))
 
+(def system {:storage storage :client client})
+(def build-cmd (partial assoc system :command))
+
 (defn- read-prompt [message]
     (let [return (chan 1)]
         (.get prompt message
@@ -40,27 +43,23 @@
     (.start prompt)
     ; not really tied to repl in long term, but whatever
     ; (start-forwarding storage client)
-    (let [system {:storage storage :client client}
-          build-cmd (partial assoc system :command)]
-        (execute (build-cmd "list"))
-        (sync-addresses! system)
-        (go-loop [command (<! (read-in))]
-            (if (exit? command)
-                (do (println "Shutting down...")
-                    (.exit js/process))
-                (do 
-                    (execute (build-cmd command)) 
-                    (recur (<! (read-in))))))))
+    (sync-addresses! system)
+    (execute (build-cmd "list"))
+    (go-loop [command (<! (read-in))]
+        (if (exit? command)
+            (do (println "Shutting down...")
+                (.exit js/process))
+            (do 
+                (execute (build-cmd command)) 
+                (recur (<! (read-in)))))))
 
 (defn -main [& args]
     (if (empty? args)
         (start-repl) 
-        (execute {
-            :storage storage
-            :command (->> args
-                        (map #(str % " "))
-                        (apply str))
-            :client client
-            })))
+        (->> args
+            (map #(str % " "))
+            (apply str)
+            build-cmd
+            execute)))
 
 (set! *main-cli-fn* -main)
