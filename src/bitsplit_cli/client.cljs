@@ -73,9 +73,11 @@
             (str "newest-address" (swap! findex inc)))))
 
 (defn new-client [name]
-    (let [config (clj->js {:db  {:type "tiny" :path "tinydb"}
-                            :wallet "coined.json"})
-          coin (coined config)]
-        (->Client coin)))
+    (-> {:db  
+            {:type "tiny" :path "tinydb"}
+         :wallet "coined.json"}
+         clj->js
+         coined
+         ->Client))
 
 (fix-bcoin-issue!)
