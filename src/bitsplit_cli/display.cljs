@@ -31,5 +31,5 @@
 
 
 (defn render [shortcuts splits]
-    (apply str
+    (apply str \newline
         (map (partial show-splits shortcuts) splits)))

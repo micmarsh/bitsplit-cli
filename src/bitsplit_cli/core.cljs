@@ -38,7 +38,7 @@
 (defn start-repl []
     (.start prompt)
     ; not really tied to repl in long term, but whatever
-    (start-forwarding storage client)
+    ; (start-forwarding storage client)
     (execute {
         :storage storage
         :command "list"
