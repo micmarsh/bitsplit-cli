@@ -12,7 +12,9 @@ I had to do this to get things working:
 sudo chown -R $USER ~/tmp/
 sudo chown -R $USER ~/.npm/
 ```
-I'm sure this is a symptom of not having set up npm permissions "correctly" in the first place, though
+I'm sure this is a symptom of not having set up npm permissions "correctly" in the first place, though.
+
+Also, leiningen and node stdin appear to mess w/ each other, so this needs to be run using `node target/main.js`, not `lein run`
 
 ## License
 

@@ -16,7 +16,8 @@
         :plugins [[lein-cljsbuild "1.0.3"]
                   [lein-npm "0.4.0"]]
 
-        :node-dependencies [[prompt "0.2.13"]]
+        :node-dependencies [[prompt "0.2.13"]
+                            [bcoin "0.14.2"]]
 
         :cljsbuild {
           :builds [{
