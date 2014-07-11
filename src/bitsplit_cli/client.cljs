@@ -45,9 +45,9 @@
     (send-amounts! [this amounts] 
         (println "sending" amounts))
     (new-address! [this]
-        (swap! fake-addresses conj 
-            (str "newest-address" (swap! findex inc)))
-        (last @fake-addresses)))
+        (-> coin
+            .createAccount
+            .getAddress)))
 
 (defn new-client [name]
     (-> {:db  
