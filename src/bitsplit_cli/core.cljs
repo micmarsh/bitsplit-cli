@@ -3,6 +3,7 @@
           [bitsplit.core :only (handle-unspents!)]
           [bitsplit.client.protocol :only (unspent-channel)]
           [bitsplit-cli.filesystem :only (->File)]
+          [bitsplit-cli.utils :only (sync-addresses!)]
           [bitsplit-cli.client :only (new-client)]
           [bitsplit-cli.commands :only (execute)])
     (:use-macros 
@@ -39,22 +40,17 @@
     (.start prompt)
     ; not really tied to repl in long term, but whatever
     ; (start-forwarding storage client)
-    (execute {
-        :storage storage
-        :command "list"
-        :client client
-        })
-    (go-loop [command (<! (read-in))]
-        (if (exit? command)
-            (do (println "Shutting down...")
-                (.exit js/process))
-            (do 
-                (execute {
-                    :storage storage
-                    :command command
-                    :client client
-                    }) 
-                (recur (<! (read-in)))))))
+    (let [system {:storage storage :client client}
+          build-cmd (partial assoc system :command)]
+        (execute (build-cmd "list"))
+        (sync-addresses! system)
+        (go-loop [command (<! (read-in))]
+            (if (exit? command)
+                (do (println "Shutting down...")
+                    (.exit js/process))
+                (do 
+                    (execute (build-cmd command)) 
+                    (recur (<! (read-in))))))))
 
 (defn -main [& args]
     (if (empty? args)
