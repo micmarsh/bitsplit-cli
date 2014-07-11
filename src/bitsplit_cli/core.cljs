@@ -3,7 +3,7 @@
           [bitsplit.core :only (handle-unspents!)]
           [bitsplit.client.protocol :only (unspent-channel)]
           [bitsplit-cli.filesystem :only (->File)]
-          [bitsplit-cli.client :only (->FakeClient)]
+          [bitsplit-cli.client :only (->FakeClient new-client)]
           [bitsplit-cli.commands :only (execute)])
     (:use-macros 
         [cljs.core.async.macros :only (go-loop)]))
@@ -13,7 +13,7 @@
 (set! (.-colors prompt) false)
 
 (def storage (->File "FAKE"))
-(def client (->FakeClient ""))
+(def client (new-client ""))
 
 (defn- read-prompt [message]
     (let [return (chan 1)]
