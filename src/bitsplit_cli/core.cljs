@@ -18,6 +18,7 @@
 
 (def system {:storage storage :client client})
 (def build-cmd (partial assoc system :command))
+(def exec-cmd (comp execute build-cmd))
 
 (defn- read-prompt [message]
     (let [return (chan 1)]
@@ -44,13 +45,13 @@
     ; not really tied to repl in long term, but whatever
     ; (start-forwarding storage client)
     (sync-addresses! system)
-    (execute (build-cmd "list"))
+    (exec-cmd "list")
     (go-loop [command (<! (read-in))]
         (if (exit? command)
             (do (println "Shutting down...")
                 (.exit js/process))
             (do 
-                (execute (build-cmd command)) 
+                (exec-cmd command)
                 (recur (<! (read-in)))))))
 
 (defn -main [& args]
@@ -59,7 +60,6 @@
         (->> args
             (map #(str % " "))
             (apply str)
-            build-cmd
-            execute)))
+            exec-cmd)))
 
 (set! *main-cli-fn* -main)
