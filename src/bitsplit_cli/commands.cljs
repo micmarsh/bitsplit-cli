@@ -10,6 +10,8 @@
 
 (def last-rendered (atom nil))
 
+(declare commands)
+
 (defn change-split 
     ([method system from to]
         (change-split method system from to 0))
