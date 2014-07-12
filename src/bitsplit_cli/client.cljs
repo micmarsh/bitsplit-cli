@@ -4,14 +4,8 @@
         [bitsplit.client.protocol :only 
         (Queries addresses unspent-amounts unspent-channel
          Operations send-amounts! new-address!)]
-        [bitsplit-cli.filesystem :only (DIR)]))
+        [bitsplit-cli.constants :only (DIR)]))
 (def coined (js/require "coined"))
-
-(def fake-addresses (atom
-    ["dke98di398fdjr98feijr3oifsoij"
-     "kdi9d9ekdkjeufjeueudjudd"
-     "83dkm3mde030dk3kd3jdmjewkdi"]))
-(def findex (atom 0))
 
 (defn fix-bcoin-issue! []
     (let [emitter (.-EventEmitter (js/require "events"))
@@ -23,6 +17,10 @@
                         (.apply old-emit self 
                             (into-array args))))))))
 
+(defn account->amount [account]
+    {"address" (.getAddress account)
+     "amount" (-> account .balance js/Number)})
+
 (defrecord Client [coin]
     Queries
     (addresses [this]
@@ -31,7 +29,8 @@
             (.keys js/Object)
             js->clj))
     (unspent-amounts [this]
-        (let [unspent (-> coin .-accounts (aget 0) .unspent)]
+        (let [unspent (->> coin .-accounts (map account->amount))]
+            (println unspent)
             unspent))
     (unspent-channel [this]
         (let [return (chan)]

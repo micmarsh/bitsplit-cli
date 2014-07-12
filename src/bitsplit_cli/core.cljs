@@ -44,7 +44,7 @@
 (defn start-repl []
     (.start prompt)
     ; not really tied to repl in long term, but whatever
-    ; (start-forwarding! storage client)
+    (start-forwarding! storage client)
     (sync-addresses! system)
     (exec-cmd "list")
     (go-loop [command (<! (read-in))]
