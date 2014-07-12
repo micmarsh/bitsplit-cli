@@ -18,8 +18,8 @@
                             (into-array args))))))))
 
 (defn account->amount [account]
-    {"address" (.getAddress account)
-     "amount" (-> account .balance js/Number)})
+    {(.getAddress account)
+     (-> account .balance js/Number)})
 
 (defrecord Client [coin]
     Queries
@@ -31,13 +31,13 @@
     (unspent-amounts [this]
         (let [unspent (->> coin .-accounts (map account->amount))]
             (println unspent)
-            unspent))
+            (apply merge unspent)))
     (unspent-channel [this]
         (let [return (chan)]
             (js/setInterval 
                 (fn []
                     (let [unspent (unspent-amounts this)]
-                        (put! return { })))
+                        (put! return unspent)))
                 1000)
             return))
     Operations
