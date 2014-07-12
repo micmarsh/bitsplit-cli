@@ -4,7 +4,8 @@
         [bitsplit.client.protocol :only 
         (Queries addresses unspent-amounts unspent-channel
          Operations send-amounts! new-address!)]
-        [bitsplit-cli.constants :only (DIR)]))
+        [bitsplit-cli.constants :only (DIR)]
+        [bitsplit-cli.utils :only (call-method chans->chan)]))
 (def coined (js/require "coined"))
 
 (defn fix-bcoin-issue! []
@@ -30,7 +31,6 @@
             js->clj))
     (unspent-amounts [this]
         (let [unspent (->> coin .-accounts (map account->amount))]
-            (println unspent)
             (apply merge unspent)))
     (unspent-channel [this]
         (let [return (chan)]
@@ -42,7 +42,10 @@
             return))
     Operations
     (send-amounts! [this amounts] 
-        (println "sending" amounts))
+        ((comp chans->chan  map)
+            (fn [[address amount]]
+                (call-method coin "sendTo" address amount))
+            amounts))
     (new-address! [this]
         (-> coin
             .createAccount
