@@ -2,27 +2,12 @@
     (:use 
         [bitsplit.storage.protocol 
             :only (Storage all lookup save! delete!)]))
+
 (def fs (js/require "fs"))
 
-(def HOME 
-    (let [env (.-env js/process)]
-        (or (aget env "HOME") 
-            (aget env "USERPROFILE"))))
-(def DIR (str HOME "/.bitcoin/bitsplit/"))
-(when (not (.existsSync fs DIR))
-    (.mkdirSync fs DIR 0766))
-(def DEFAULT_LOCATION (str DIR "splits"))
-
-
 (def fake-file (atom { }))
-    ; (atom 
-    ;     { "dke98di398fdjr98feijr3oifsoij"
-    ;         {"dlkjf98398jdlkjrewoiufdz" 0.2 "8328ff98rw98fs98r3" 0.05
-    ;          "kd98e8fue7fd87f7eu3u848" 0.75} 
-    ;       "kdi9d9ekdkjeufjeueudjudd" {"dlfjoiduwoieu98jkLJKDO" 0.6
-    ;          "zsddddddudfoiudsoiajflk" 0.4}}))
 
-(defn read-file 
+(defn- read-file 
     ([filename]
         (read-file filename { }))
     ([filename default]
@@ -32,7 +17,7 @@
                 (.readFileSync fs filename)
                 default))))
 
-(defn write-file [filename data]
+(defn- write-file [filename data]
     (if (= filename "FAKE")
         (reset! fake-file data)
         (.writeFileSync fs filename data)))

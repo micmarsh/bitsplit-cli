@@ -3,6 +3,7 @@
           [bitsplit.core :only (handle-unspents!)]
           [bitsplit.client.protocol :only (unspent-channel)]
           [bitsplit-cli.filesystem :only (->File)]
+          [bitsplit-cli.constants :only (DIR SPLITS_LOCATION)]
           [bitsplit-cli.utils :only (sync-addresses!)]
           [bitsplit-cli.client :only (new-client)]
           [bitsplit-cli.commands :only (execute)])
@@ -13,8 +14,8 @@
 (set! (.-delimiter prompt) "")
 (set! (.-colors prompt) false)
 
-(def storage (->File "FAKE"))
-(def client (new-client ""))
+(def storage (->File SPLITS_LOCATION))
+(def client (new-client DIR))
 
 (def system {:storage storage :client client})
 (def build-cmd (partial assoc system :command))
@@ -36,14 +37,14 @@
           seq
           (= (take 4 command))))
 
-(defn- start-forwarding [storage client]
+(defn- start-forwarding! [storage client]
     (let [unspents (unspent-channel client)]
         (handle-unspents! client storage unspents)))
 
 (defn start-repl []
     (.start prompt)
     ; not really tied to repl in long term, but whatever
-    ; (start-forwarding storage client)
+    ; (start-forwarding! storage client)
     (sync-addresses! system)
     (exec-cmd "list")
     (go-loop [command (<! (read-in))]

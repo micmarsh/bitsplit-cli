@@ -49,10 +49,12 @@
             .createAccount
             .getAddress)))
 
-(defn new-client [name]
+(defn new-client [location]
     (-> {:db  
-            {:type "tiny" :path "tinydb"}
-         :wallet "coined.json"}
+            {:type "tiny" :path 
+                (str location "tinydb")}
+         :wallet 
+            (str location "wallet.json")}
          clj->js
          coined
          ->Client))
