@@ -1,5 +1,6 @@
 (ns bitsplit-cli.filesystem
     (:use 
+        [cljs.reader :only (read-string)]
         [bitsplit.storage.protocol 
             :only (Storage all lookup save! delete!)]))
 
@@ -14,7 +15,10 @@
         (if (= filename "FAKE")
             @fake-file
             (if (.existsSync fs filename)
-                (.readFileSync fs filename)
+                (->> filename 
+                    (.readFileSync fs)
+                    .toString
+                    read-string)
                 default))))
 
 (defn- write-file [filename data]
