@@ -57,11 +57,10 @@
                 5000)
             return))
     Operations
-    (send-amounts! [this amounts] 
-        (println (unspent-amounts this))
-        (println amounts)
+    (send-amounts! [this amounts]
         ((comp chans->chan doall map)
             (fn [[address amount]]
+                (println address amount)
                 (let [from (find-account this address)]
                     (if (= amount 0)
                         (empty-chan)
@@ -81,6 +80,10 @@
     (shutdown! [this]
         (.close coin)))
 
+(defn- change-dust! [coin]
+    (set! (.-dust coin) 1)
+    coin)
+
 (defn new-client [location storage]
     (-> {:db  
             {:type "tiny" :path 
@@ -89,6 +92,7 @@
             (str location "wallet.json")}
          clj->js
          coined
+         change-dust!
          (->Client storage)))
 
 (fix-bcoin-issue!)
