@@ -32,6 +32,9 @@
 (defn- has-addr? [to [address splits]] 
     (contains? splits to))
 
+(defn- send? [fee amounts]
+    (< (* 5 fee) (->> amounts (map second) (apply +))))
+
 (defprotocol WithStorage 
     (find-account [this send-to]))
 
@@ -58,14 +61,15 @@
             return))
     Operations
     (send-amounts! [this amounts]
-        ((comp chans->chan doall map)
-            (fn [[address amount]]
-                (println address amount)
-                (let [from (find-account this address)]
-                    (if (= amount 0)
-                        (empty-chan)
-                        (call-method coin "sendFrom" from address amount))))
-            amounts))
+        (when (send? (.-fee coin) amounts)
+            ((comp chans->chan doall map)
+                (fn [[address amount]]
+                    (println address amount)
+                    (let [from (find-account this address)]
+                        (if (= amount 0)
+                            (empty-chan)
+                            (call-method coin "sendFrom" from address amount))))
+                amounts)))
     (new-address! [this]
         (-> coin
             .createAccount

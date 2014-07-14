@@ -21,7 +21,7 @@
     (let [return (chan)
           callback 
             (fn [err & results]
-                (println "callbacked." err)
+                (println "callbacked." err (.stringify js/JSON results))
                 (cond (= 1 (count results))
                         (put! return (first results))
                       (> (count results) 1)
