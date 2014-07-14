@@ -17,24 +17,23 @@
             (doseq [address addrs]
                 (save! storage address { })))))
 
-(defn callback->channel [function]
-    (fn [& args]
-        (let [return (chan)
-              callback 
-                (fn [err & results]
-                    (cond (= 1 (count results))
-                            (put! return (first results))
-                          (> (count results) 1)
-                            (put! return results))
-                    (close! return))
-              total-args (concat args [callback])]
-              (apply function total-args)
-              return)))
+(defn callback->channel [function & args]
+    (let [return (chan)
+          callback 
+            (fn [err & results]
+                (cond (= 1 (count results))
+                        (put! return (first results))
+                      (> (count results) 1)
+                        (put! return results))
+                (close! return))
+          total-args (concat args [callback])]
+          (apply function total-args)
+          return))
 
 (defn call-method [object method & args]
     (let [function (aget object method)
           bound (.bind js/goog function object)
-          asynced (callback->channel bound)]
+          asynced (partial callback->channel bound)]
         (apply asynced args)))
 
 (defn chans->chan [sequence]
