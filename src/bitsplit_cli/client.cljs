@@ -4,11 +4,12 @@
         [bitsplit.client.protocol :only 
         (Queries addresses unspent-amounts unspent-channel
          Operations send-amounts! new-address!)]
+        [bitsplit.storage.protocol :only (all)]
         [bitsplit-cli.constants :only (DIR)]
-        [bitsplit-cli.utils :only (call-method chans->chan)]))
+        [bitsplit-cli.utils :only (call-method chans->chan empty-chan)]))
 (def coined (js/require "coined"))
 
-(defn fix-bcoin-issue! []
+(defn- fix-bcoin-issue! []
     (let [emitter (.-EventEmitter (js/require "events"))
           old-emit (-> emitter .-prototype .-emit)]
         (set! (-> emitter .-prototype .-emit)
@@ -18,17 +19,23 @@
                         (.apply old-emit self 
                             (into-array args))))))))
 
-(defn account->amount [account]
+(defn- account->amount [account]
     (println (.getAddress account) (.balance account))
     {(.getAddress account)
      (-> account .balance js/Number)})
 
-(defn empty-chan []
-    (let [c (chan)] 
-        (close! c) 
-        c))
+(defn- -find-account [address accounts]
+    (->> accounts
+        (filter #(= (.getAddress %) address))
+        first))
 
-(defrecord Client [coin]
+(defn- has-addr? [to [address splits]] 
+    (contains? splits to))
+
+(defprotocol WithStorage 
+    (find-account [this send-to]))
+
+(defrecord Client [coin storage]
     Queries
     (addresses [this]
         (->> coin
@@ -44,7 +51,7 @@
                 (fn []
                     (let [unspent (unspent-amounts this)]
                         (put! return unspent)))
-                10000)
+                5000)
             return))
     Operations
     (send-amounts! [this amounts] 
@@ -52,16 +59,23 @@
         (println amounts)
         ((comp chans->chan  map)
             (fn [[address amount]]
-                (if (= amount 0)
-                    (empty-chan)
-                    (call-method coin "sendTo" address (- amount 100))))
+                (let [from (find-account this address)]
+                    (if (= amount 0)
+                        (empty-chan)
+                        (call-method coin "sendFrom" from address amount))))
             amounts))
     (new-address! [this]
         (-> coin
             .createAccount
-            .getAddress)))
+            .getAddress))
 
-(defn new-client [location]
+    WithStorage
+    (find-account [this send-to]
+        (let [address (->> storage all (filter (partial has-addr? send-to)) ffirst)
+              account (-find-account address (.-accounts coin))]
+              account)))
+
+(defn new-client [location storage]
     (-> {:db  
             {:type "tiny" :path 
                 (str location "tinydb")}
@@ -69,6 +83,6 @@
             (str location "wallet.json")}
          clj->js
          coined
-         ->Client))
+         (->Client storage)))
 
 (fix-bcoin-issue!)

@@ -43,3 +43,8 @@
             (doseq [channel sequence]
                 (.push array (<! channel)))
             (seq array))))
+
+(defn empty-chan []
+    (let [c (chan)] 
+        (close! c) 
+        c))

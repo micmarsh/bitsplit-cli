@@ -15,7 +15,7 @@
 (set! (.-colors prompt) false)
 
 (def storage (->File SPLITS_LOCATION))
-(def client (new-client DIR))
+(def client (new-client DIR storage))
 
 (def system {:storage storage :client client})
 (def build-cmd (partial assoc system :command))
