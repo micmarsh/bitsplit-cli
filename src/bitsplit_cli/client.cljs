@@ -1,6 +1,6 @@
 (ns bitsplit-cli.client
     (:use
-        [cljs.core.async :only (chan put!)]
+        [cljs.core.async :only (chan put! close!)]
         [bitsplit.client.protocol :only 
         (Queries addresses unspent-amounts unspent-channel
          Operations send-amounts! new-address!)]
@@ -19,8 +19,14 @@
                             (into-array args))))))))
 
 (defn account->amount [account]
+    (println (.getAddress account) (.balance account))
     {(.getAddress account)
      (-> account .balance js/Number)})
+
+(defn empty-chan []
+    (let [c (chan)] 
+        (close! c) 
+        c))
 
 (defrecord Client [coin]
     Queries
@@ -38,14 +44,17 @@
                 (fn []
                     (let [unspent (unspent-amounts this)]
                         (put! return unspent)))
-                1000)
+                10000)
             return))
     Operations
     (send-amounts! [this amounts] 
+        (println (unspent-amounts this))
+        (println amounts)
         ((comp chans->chan  map)
             (fn [[address amount]]
-                (println address amount)
-                (call-method coin "sendTo" address amount))
+                (if (= amount 0)
+                    (empty-chan)
+                    (call-method coin "sendTo" address amount)))
             amounts))
     (new-address! [this]
         (-> coin
