@@ -44,6 +44,7 @@
     (send-amounts! [this amounts] 
         ((comp chans->chan  map)
             (fn [[address amount]]
+                (println address amount)
                 (call-method coin "sendTo" address amount))
             amounts))
     (new-address! [this]

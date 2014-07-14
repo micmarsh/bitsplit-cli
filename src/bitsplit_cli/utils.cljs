@@ -15,7 +15,6 @@
                 (save! storage address splits)))
         (when (= 0 (count valid))
             (doseq [address addrs]
-                ; (println (.stringify js/JSON client))
                 (save! storage address { })))))
 
 (defn callback->channel [function]
@@ -23,6 +22,8 @@
         (let [return (chan)
               callback 
                 (fn [err & results]
+                    (println err)
+                    (println results)
                     (if (= 1 (count results))
                         (put! return (first results))
                         (put! return results))
@@ -32,10 +33,10 @@
               return)))
 
 (defn call-method [object method & args]
-    (.apply 
-        (callback->channel (aget object method)) 
-        object
-        (into-array args)))
+    (let [function (aget object method)
+          bound (.bind js/goog function object)
+          asynced (callback->channel bound)]
+        (apply asynced args)))
 
 (defn chans->chan [sequence]
     (go
