@@ -24,9 +24,10 @@
                 (fn [err & results]
                     (println err)
                     (println results)
-                    (if (= 1 (count results))
-                        (put! return (first results))
-                        (put! return results))
+                    (cond (= 1 (count results))
+                            (put! return (first results))
+                          (> 1 (count results))
+                            (put! return results))
                     (close! return))
               total-args (concat args [callback])]
               (apply function total-args)

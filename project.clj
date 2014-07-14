@@ -7,8 +7,6 @@
                  [org.clojure/clojure "1.6.0"]
                  [bitsplit-core "0.1.9"]]
 
-  :main "target/main.js"
-
   :profiles {
     :dev {
         :dependencies [[org.clojure/clojurescript "0.0-2268"]]

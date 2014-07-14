@@ -54,7 +54,7 @@
             (fn [[address amount]]
                 (if (= amount 0)
                     (empty-chan)
-                    (call-method coin "sendTo" address amount)))
+                    (call-method coin "sendTo" address (- amount 100))))
             amounts))
     (new-address! [this]
         (-> coin
