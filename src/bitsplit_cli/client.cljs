@@ -60,7 +60,7 @@
     (send-amounts! [this amounts] 
         (println (unspent-amounts this))
         (println amounts)
-        ((comp chans->chan  map)
+        ((comp chans->chan doall map)
             (fn [[address amount]]
                 (let [from (find-account this address)]
                     (if (= amount 0)
