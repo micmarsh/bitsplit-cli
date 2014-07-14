@@ -22,11 +22,9 @@
         (let [return (chan)
               callback 
                 (fn [err & results]
-                    (println err)
-                    (println results)
                     (cond (= 1 (count results))
                             (put! return (first results))
-                          (> 1 (count results))
+                          (> (count results) 1)
                             (put! return results))
                     (close! return))
               total-args (concat args [callback])]
