@@ -35,6 +35,9 @@
 (defprotocol WithStorage 
     (find-account [this send-to]))
 
+(defprotocol Shutdown
+    (shutdown! [this]))
+
 (defrecord Client [coin storage]
     Queries
     (addresses [this]
@@ -73,7 +76,10 @@
     (find-account [this send-to]
         (let [address (->> storage all (filter (partial has-addr? send-to)) ffirst)
               account (-find-account address (.-accounts coin))]
-              account)))
+              account))
+    Shutdown
+    (shutdown! [this]
+        (.close coin)))
 
 (defn new-client [location storage]
     (-> {:db  

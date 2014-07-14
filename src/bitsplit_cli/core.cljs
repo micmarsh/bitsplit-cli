@@ -5,7 +5,7 @@
           [bitsplit-cli.filesystem :only (->File)]
           [bitsplit-cli.constants :only (DIR SPLITS_LOCATION)]
           [bitsplit-cli.utils :only (sync-addresses!)]
-          [bitsplit-cli.client :only (new-client)]
+          [bitsplit-cli.client :only (new-client shutdown!)]
           [bitsplit-cli.commands :only (execute)])
     (:use-macros 
         [cljs.core.async.macros :only (go-loop)]))
@@ -50,6 +50,7 @@
     (go-loop [command (<! (read-in))]
         (if (exit? command)
             (do (println "Shutting down...")
+                (shutdown! client)
                 (.exit js/process))
             (do 
                 (exec-cmd command)
