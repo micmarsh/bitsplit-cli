@@ -32,7 +32,6 @@
         (.get prompt message
             (fn [err input]
                 (when (-> input nil? not)
-                    (println "oh noes a read" input message)
                     (put! return
                         (aget input message)))))
         return))
