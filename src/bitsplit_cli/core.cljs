@@ -41,19 +41,10 @@
           seq
           (= (take 4 command))))
 
-(defn- start-forwarding! [storage client]
-    (let [unspents (unspent-channel client)]
-        #_(handle-unspents! client storage unspents)
-        (go-loop [unspent (<! unspents)]
-            (let [percentages (all storage)]
-              (->> unspent
-                (apply-percentages percentages)
-                )))))
-
 (defn start-repl []
     (.start prompt)
     ; not really tied to repl in long term, but whatever
-    (start-forwarding! storage client)
+    (handle-unspents! apply-percentages system)
     (sync-addresses! system)
     (exec-cmd "list")
     (go-loop [command (<! (read-in))]
