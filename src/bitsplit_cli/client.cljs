@@ -27,7 +27,7 @@
     (< (* 5 fee) amount))
 
 (defprotocol Shutdown
-    (shutdown! [this]))
+  (shutdown! [this]))
 
 (defrecord Client [coin storage]
     Queries
