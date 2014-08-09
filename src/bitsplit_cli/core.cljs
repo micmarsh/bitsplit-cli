@@ -1,13 +1,17 @@
 (ns bitsplit-cli.core
     (:use [cljs.core.async :only (chan put! <!)]
           [bitsplit.core :only (handle-unspents!)]
-          [bitsplit.client.protocol :only (unspent-channel)]
+
+          [bitsplit.utils.calculate :only (apply-percentages)]
+          [bitsplit.client.protocol :only (unspent-channel send-splits!)]
+          [bitsplit.storage.protocol :only (all)]
+
           [bitsplit-cli.filesystem :only (->File)]
           [bitsplit-cli.constants :only (DIR SPLITS_LOCATION)]
           [bitsplit-cli.utils :only (sync-addresses!)]
           [bitsplit-cli.client :only (new-client shutdown!)]
           [bitsplit-cli.commands :only (execute)])
-    (:use-macros 
+    (:use-macros
         [cljs.core.async.macros :only (go-loop)]))
 (def prompt (js/require "prompt"))
 (set! (.-message prompt) "")
@@ -26,7 +30,7 @@
         (.get prompt message
             (fn [err input]
                 (when (-> input nil? not)
-                    (put! return 
+                    (put! return
                         (aget input message)))))
         return))
 
@@ -39,7 +43,12 @@
 
 (defn- start-forwarding! [storage client]
     (let [unspents (unspent-channel client)]
-        (handle-unspents! client storage unspents)))
+        #_(handle-unspents! client storage unspents)
+        (go-loop [unspent (<! unspents)]
+            (let [percentages (all storage)]
+              (->> unspent
+                (apply-percentages percentages)
+                )))))
 
 (defn start-repl []
     (.start prompt)
@@ -52,15 +61,15 @@
             (do (println "Shutting down...")
                 (shutdown! client)
                 (.exit js/process))
-            (do 
+            (do
                 (exec-cmd command)
                 (recur (<! (read-in)))))))
 
 (defn -main [& args]
     (if (empty? args)
-        (start-repl) 
+        (start-repl)
         (->> args
-            (map #(str % " "))
+            (map #(str % \space))
             (apply str)
             exec-cmd)))
 
