@@ -3,7 +3,7 @@
           [bitsplit.core :only (handle-unspents!)]
 
           [bitsplit.utils.calculate :only (apply-percentages)]
-          [bitsplit.client.protocol :only (unspent-channel send-splits!)]
+          [bitsplit.client.protocol :only (unspent-channel send-amounts!)]
           [bitsplit.storage.protocol :only (all)]
 
           [bitsplit-cli.filesystem :only (->File)]

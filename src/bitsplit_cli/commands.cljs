@@ -13,7 +13,7 @@
 
 (declare commands)
 
-(defn change-split 
+(defn change-split
     ([method system from to]
         (change-split method system from to 0))
     ([method {:keys [client storage] :as system}
@@ -37,18 +37,18 @@
 
     "unsplit" (partial change-split remove-address!)
 
-    "generate" 
+    "generate"
         (fn [{:keys [client storage] :as system}]
             (let [address (new-address! client)]
                 (save! storage address { })
                 ((commands "list") system)))
     })
 
-(def ^:private arg-counts 
+(def ^:private arg-counts
     {"list" 0 "split" 3 "unsplit" 2 "generate" 0})
 
 (defn- arity? [method args]
-    (= (arg-counts method) 
+    (= (arg-counts method)
        (count args)))
 
 (def ^:private bad-args? (comp not arity?))
@@ -56,7 +56,7 @@
 (defn- -execute [{:keys [command] :as system}]
     (let [[cmd & args] (split-cmd command)
           method (commands cmd)]
-        (cond 
+        (cond
             (nil? method)
                 (str "No such command: \"" cmd \")
             (bad-args? cmd args)

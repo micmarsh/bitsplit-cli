@@ -1,9 +1,9 @@
 (ns bitsplit-cli.utils
-    (:use      
-        [cljs.core.async :only (put! close! chan <! >!)]     
+    (:use
+        [cljs.core.async :only (put! close! chan <! >!)]
         [bitsplit.storage.protocol :only (all save!)]
         [bitsplit.client.protocol :only (addresses)])
-    (:use-macros 
+    (:use-macros
         [cljs.core.async.macros :only (go)]))
 
 (defn sync-addresses! [{:keys [client storage]}]
@@ -19,7 +19,7 @@
 
 (defn callback->channel [function & args]
     (let [return (chan)
-          callback 
+          callback
             (fn [err & results]
                 (println "callbacked." err (.stringify js/JSON results))
                 (cond (= 1 (count results))
@@ -38,13 +38,13 @@
         (apply asynced args)))
 
 (defn chans->chan [sequence]
-    (go
-        (let [array #js []]
-            (doseq [channel sequence]
-                (.push array (<! channel)))
-            (seq array))))
+  (go
+    (let [array #js []]
+      (doseq [channel sequence]
+        (.push array (<! channel)))
+      (seq array))))
 
 (defn empty-chan []
-    (let [c (chan)] 
-        (close! c) 
+    (let [c (chan)]
+        (close! c)
         c))
