@@ -27,8 +27,6 @@
 (defn- send? [fee amount]
     (< (* 5 fee) amount))
 
-(def doall-async (comp chans->chan doall map))
-
 (defprotocol Shutdown
     (shutdown! [this]))
 
@@ -53,11 +51,12 @@
     Operations
     (send-amounts! [this amounts]
         (println amounts)
-        (doall-async
-          (fn [[from [to amount]]]
-            (let [account (aget (.-aacounts coin) from)]
-                (call-method coin "sendFrom" account to amount)))
-          amounts))
+        (chans->chan
+          (for [[from splits] amounts
+                [to amount] splits
+                 :when (send? (.-fee coin) amount)]
+            (let [account (aget (.-aaccounts coin) from)]
+              (call-method coin "sendFrom" account to amount)))))
     (new-address! [this]
         (-> coin
             .createAccount
