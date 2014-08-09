@@ -18,6 +18,8 @@
 (set! (.-delimiter prompt) "")
 (set! (.-colors prompt) false)
 
+(set! *print-fn* #(.log js/console %))
+
 (def storage (->File SPLITS_LOCATION))
 (def client (new-client DIR storage))
 
@@ -30,6 +32,7 @@
         (.get prompt message
             (fn [err input]
                 (when (-> input nil? not)
+                    (println "oh noes a read" input message)
                     (put! return
                         (aget input message)))))
         return))
