@@ -20,7 +20,6 @@
                             (into-array args))))))))
 
 (defn- account->amount [account]
-    (println (.getAddress account) (.balance account))
     {(.getAddress account)
      (-> account .balance js/Number)})
 
@@ -50,11 +49,10 @@
             return))
     Operations
     (send-amounts! [this amounts]
-        (println amounts)
         (chans->chan
           (for [[from splits] amounts
                 [to amount] splits
-                 :when (send? (.-fee coin) amount)]
+                :when (send? (.-fee coin) amount)]
             (let [account (aget (.-aaccounts coin) from)]
               (call-method coin "sendFrom" account to amount)))))
     (new-address! [this]
