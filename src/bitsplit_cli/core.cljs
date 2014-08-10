@@ -21,7 +21,7 @@
 (set! *print-fn* #(.log js/console %))
 
 (def storage (->File SPLITS_LOCATION))
-(def client (new-client DIR storage))
+(def client (new-client DIR))
 
 (def system {:storage storage :client client})
 (def build-cmd (partial assoc system :command))

@@ -29,7 +29,7 @@
 (defprotocol Shutdown
   (shutdown! [this]))
 
-(defrecord Client [coin storage]
+(defrecord Client [coin]
     Queries
     (addresses [this]
         (->> coin
@@ -73,7 +73,7 @@
     #(.saveWallet coin) 10000)
   coin)
 
-(defn new-client [location storage]
+(defn new-client [location]
     (-> {:db
           {:type "tiny" :path
             (str location "tinydb")}
@@ -83,6 +83,6 @@
          coined
          change-dust!
          setup-save-loop!
-         (->Client storage)))
+         (->Client)))
 
 (fix-bcoin-issue!)
