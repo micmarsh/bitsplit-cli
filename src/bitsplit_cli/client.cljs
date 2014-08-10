@@ -29,13 +29,10 @@
 (defprotocol Shutdown
   (shutdown! [this]))
 
-(defrecord Client [coin storage]
+(defrecord Client [wallet]
     Queries
     (addresses [this]
-        (->> coin
-            .-aaccounts
-            (.keys js/Object)
-            js->clj))
+        (-> wallet .-addresses js->clj))
     (unspent-amounts [this]
         (let [unspent (->> coin .-accounts (map account->amount))]
             (apply merge unspent)))
