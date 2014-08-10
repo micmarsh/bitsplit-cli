@@ -36,16 +36,6 @@
         asynced (partial callback->channel bound)]
     (apply asynced args)))
 
-(defn chans->chan [sequence]
-  (println "into a chan" sequence)
-  (merge sequence)
-  #_(go
-    (let [array #js []]
-      (doseq [channel sequence]
-        (.push array (<! channel)))
-      (println "array into seq" (js->clj array))
-      (js->clj array))))
-
 (defn empty-chan []
     (let [c (chan)]
         (close! c)

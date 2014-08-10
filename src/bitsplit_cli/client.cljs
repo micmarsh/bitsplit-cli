@@ -1,12 +1,12 @@
 (ns bitsplit-cli.client
     (:use
-        [cljs.core.async :only (chan put! close!)]
         [bitsplit.client.protocol :only
         (Queries addresses unspent-amounts unspent-channel
          Operations send-amounts! new-address!)]
         [bitsplit.storage.protocol :only (all)]
         [bitsplit-cli.constants :only (DIR)]
-        [bitsplit-cli.utils :only (call-method chans->chan empty-chan)]))
+        [bitsplit-cli.utils :only (call-method)])
+    (:require [cljs.core.async :as a]))
 (def coined (js/require "coined"))
 
 (defn- fix-bcoin-issue! []
@@ -40,16 +40,16 @@
         (let [unspent (->> coin .-accounts (map account->amount))]
             (apply merge unspent)))
     (unspent-channel [this]
-        (let [return (chan)]
+        (let [return (a/chan)]
             (js/setInterval
                 (fn []
                     (let [unspent (unspent-amounts this)]
-                        (put! return unspent)))
+                        (a/put! return unspent)))
                 5000)
             return))
     Operations
     (send-amounts! [this amounts]
-        (chans->chan
+        (a/merge
           (for [[from splits] amounts
                 [to amount] splits
                 :when (send? (.-fee coin) amount)]
