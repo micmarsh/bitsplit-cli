@@ -53,8 +53,8 @@
           (for [[from splits] amounts
                 [to amount] splits
                 :when (send? (.-fee coin) amount)]
-            (println from to amount)
             (let [account (aget (.-aaccounts coin) from)]
+              (println from to amount)
               (call-method coin "sendFrom" account to amount)))))
     (new-address! [this]
         (-> coin

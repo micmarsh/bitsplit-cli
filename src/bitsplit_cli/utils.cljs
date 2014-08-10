@@ -37,11 +37,13 @@
     (apply asynced args)))
 
 (defn chans->chan [sequence]
+  (println "into a chan" sequence)
   (go
     (let [array #js []]
       (doseq [channel sequence]
         (.push array (<! channel)))
-      (seq array))))
+      (println "array into seq" (js->clj array))
+      (js->clj array))))
 
 (defn empty-chan []
     (let [c (chan)]

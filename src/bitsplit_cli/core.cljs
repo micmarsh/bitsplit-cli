@@ -46,9 +46,12 @@
 (defn start-repl []
     (.start prompt)
     ; not really tied to repl in long term, but whatever
-    (handle-unspents! apply-percentages system)
     (sync-addresses! system)
     (exec-cmd "list")
+    (let [unspent-results (handle-unspents! apply-percentages system)]
+      (go-loop [result (<! unspent-results)]
+        (println (type result))
+        (recur (<! unspent-results))))
     (go-loop [command (<! (read-in))]
         (if (exit? command)
             (do (println "Shutting down...")
