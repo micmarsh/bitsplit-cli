@@ -1,6 +1,6 @@
 (ns bitsplit-cli.utils
     (:use
-        [cljs.core.async :only (put! close! chan <! >!)]
+        [cljs.core.async :only (put! close! merge chan <! >!)]
         [bitsplit.storage.protocol :only (all save!)]
         [bitsplit.client.protocol :only (addresses)])
     (:use-macros
@@ -38,7 +38,8 @@
 
 (defn chans->chan [sequence]
   (println "into a chan" sequence)
-  (go
+  (merge sequence)
+  #_(go
     (let [array #js []]
       (doseq [channel sequence]
         (.push array (<! channel)))
