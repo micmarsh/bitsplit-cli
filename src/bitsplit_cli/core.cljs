@@ -59,11 +59,11 @@
                 (recur (<! (read-in)))))))
 
 (defn -main [& args]
-    (if (empty? args)
-        (start-repl)
-        (->> args
-            (map #(str % \space))
-            (apply str)
-            exec-cmd)))
+  (if (empty? args)
+    (start-repl)
+    (->> args
+      (map #(str % \space))
+      (apply str)
+      exec-cmd)))
 
 (set! *main-cli-fn* -main)

@@ -5,26 +5,26 @@
         (* 100)
         (str "% ")))
 
-(def unique-index 
+(def unique-index
     (let [index (atom 0)]
     ; TODO smarter memoize/cache that won't grow forever
     (memoize (fn [_] (swap! index inc)))))
 
 
-(defn- show-address [shortcuts address]
+(defn show-address [shortcuts address]
     (let [i (unique-index address)]
         (swap! shortcuts assoc (str i) address)
         (str \( i \) " " address)))
 
 (defn- show-addresses [shortcuts [address percent]]
-    (str "    " 
-        (show-address shortcuts address) 
+    (str "    "
+        (show-address shortcuts address)
         " "  (show-percent percent)
         \newline))
 
 ; todo given the existence of unique id, can do this in a very simple way
 (defn- show-splits [shortcuts [address children]]
-    (apply str 
+    (apply str
         (show-address shortcuts address)
         \newline
         (map (partial show-addresses shortcuts) children)))

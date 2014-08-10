@@ -1,8 +1,8 @@
 (ns bitsplit-cli.commands
     (:use [bitsplit.core :only (add-address! remove-address!)]
           [bitsplit.storage.protocol :only (all save!)]
-          [bitsplit.client.protocol :only (new-address!)]
-          [bitsplit-cli.display :only (render)]))
+          [bitsplit.client.protocol :only (new-address! unspent-amounts)]
+          [bitsplit-cli.display :only (render show-address)]))
 
 (defn split-cmd [command]
     (-> command
@@ -26,6 +26,11 @@
                :percent (js/Number percentage)})
             ((commands "list") system))))
 
+(defn show-amount [shortcuts [address amount]]
+  (str
+    (show-address shortcuts address)
+    " "  amount \newline))
+
 (def ^:private commands {
     "list"
         (fn [{:keys [client storage]}]
@@ -37,15 +42,23 @@
 
     "unsplit" (partial change-split remove-address!)
 
+    "unspent"
+      (fn [{:keys [client]}]
+        (->> (unspent-amounts client)
+          (map (partial show-amount last-rendered))
+          (apply str \newline)))
+
     "generate"
-        (fn [{:keys [client storage] :as system}]
-            (let [address (new-address! client)]
-                (save! storage address { })
-                ((commands "list") system)))
+      (fn [{:keys [client storage] :as system}]
+        (let [address (new-address! client)]
+          (save! storage address { })
+          ((commands "list") system)))
     })
 
 (def ^:private arg-counts
-    {"list" 0 "split" 3 "unsplit" 2 "generate" 0})
+  {"list" 0 "split" 3
+   "unsplit" 2 "generate" 0
+   "unspent" 0})
 
 (defn- arity? [method args]
     (= (arg-counts method)

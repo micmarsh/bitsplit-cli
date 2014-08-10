@@ -24,7 +24,7 @@
      (-> account .balance js/Number)})
 
 (defn- send? [fee amount]
-    (< (* 5 fee) amount))
+    (< (* 3 fee) amount))
 
 (defprotocol Shutdown
   (shutdown! [this]))
@@ -53,6 +53,7 @@
           (for [[from splits] amounts
                 [to amount] splits
                 :when (send? (.-fee coin) amount)]
+            (println from to amount)
             (let [account (aget (.-aaccounts coin) from)]
               (call-method coin "sendFrom" account to amount)))))
     (new-address! [this]
@@ -67,15 +68,21 @@
     (set! (.-dust coin) 1)
     coin)
 
+(defn setup-save-loop! [coin]
+  (js/setInterval
+    #(.saveWallet coin) 10000)
+  coin)
+
 (defn new-client [location storage]
     (-> {:db
-            {:type "tiny" :path
-                (str location "tinydb")}
+          {:type "tiny" :path
+            (str location "tinydb")}
          :wallet
             (str location "wallet.json")}
          clj->js
          coined
          change-dust!
+         setup-save-loop!
          (->Client storage)))
 
 (fix-bcoin-issue!)
