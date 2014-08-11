@@ -21,7 +21,7 @@
 (set! *print-fn* #(.log js/console %))
 
 (def storage (->File SPLITS_LOCATION))
-(def client (new-client DIR storage))
+(def client (new-client DIR))
 
 (def system {:storage storage :client client})
 (def build-cmd (partial assoc system :command))
@@ -46,9 +46,12 @@
 (defn start-repl []
     (.start prompt)
     ; not really tied to repl in long term, but whatever
-    (handle-unspents! apply-percentages system)
     (sync-addresses! system)
     (exec-cmd "list")
+    (let [unspent-results (handle-unspents! apply-percentages system)]
+      (go-loop [result (<! unspent-results)]
+        (println (type result))
+        (recur (<! unspent-results))))
     (go-loop [command (<! (read-in))]
         (if (exit? command)
             (do (println "Shutting down...")
@@ -59,11 +62,11 @@
                 (recur (<! (read-in)))))))
 
 (defn -main [& args]
-    (if (empty? args)
-        (start-repl)
-        (->> args
-            (map #(str % \space))
-            (apply str)
-            exec-cmd)))
+  (if (empty? args)
+    (start-repl)
+    (->> args
+      (map #(str % \space))
+      (apply str)
+      exec-cmd)))
 
 (set! *main-cli-fn* -main)

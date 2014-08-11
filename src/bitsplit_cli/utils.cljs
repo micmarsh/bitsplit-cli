@@ -1,6 +1,6 @@
 (ns bitsplit-cli.utils
     (:use
-        [cljs.core.async :only (put! close! chan <! >!)]
+        [cljs.core.async :only (put! close! merge chan <! >!)]
         [bitsplit.storage.protocol :only (all save!)]
         [bitsplit.client.protocol :only (addresses)])
     (:use-macros
@@ -35,13 +35,6 @@
         bound (.bind js/goog function object)
         asynced (partial callback->channel bound)]
     (apply asynced args)))
-
-(defn chans->chan [sequence]
-  (go
-    (let [array #js []]
-      (doseq [channel sequence]
-        (.push array (<! channel)))
-      (seq array))))
 
 (defn empty-chan []
     (let [c (chan)]

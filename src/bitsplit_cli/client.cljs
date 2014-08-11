@@ -1,12 +1,12 @@
 (ns bitsplit-cli.client
     (:use
-        [cljs.core.async :only (chan put! close!)]
         [bitsplit.client.protocol :only
         (Queries addresses unspent-amounts unspent-channel
          Operations send-amounts! new-address!)]
         [bitsplit.storage.protocol :only (all)]
         [bitsplit-cli.constants :only (DIR)]
-        [bitsplit-cli.utils :only (call-method chans->chan empty-chan)]))
+        [bitsplit-cli.utils :only (call-method)])
+    (:require [cljs.core.async :as a]))
 (def coined (js/require "coined"))
 
 (defn- fix-bcoin-issue! []
@@ -24,7 +24,7 @@
      (-> account .balance js/Number)})
 
 (defn- send? [fee amount]
-    (< (* 5 fee) amount))
+    (< (* 3 fee) amount))
 
 (defprotocol Shutdown
   (shutdown! [this]))
@@ -37,20 +37,21 @@
         (let [unspent (->> coin .-accounts (map account->amount))]
             (apply merge unspent)))
     (unspent-channel [this]
-        (let [return (chan)]
+        (let [return (a/chan)]
             (js/setInterval
                 (fn []
                     (let [unspent (unspent-amounts this)]
-                        (put! return unspent)))
+                        (a/put! return unspent)))
                 5000)
             return))
     Operations
     (send-amounts! [this amounts]
-        (chans->chan
+        (a/merge
           (for [[from splits] amounts
                 [to amount] splits
                 :when (send? (.-fee coin) amount)]
             (let [account (aget (.-aaccounts coin) from)]
+              (println from to amount)
               (call-method coin "sendFrom" account to amount)))))
     (new-address! [this]
         (-> coin
@@ -64,15 +65,21 @@
     (set! (.-dust coin) 1)
     coin)
 
-(defn new-client [location storage]
+(defn setup-save-loop! [coin]
+  (js/setInterval
+    #(.saveWallet coin) 10000)
+  coin)
+
+(defn new-client [location]
     (-> {:db
-            {:type "tiny" :path
-                (str location "tinydb")}
+          {:type "tiny" :path
+            (str location "tinydb")}
          :wallet
             (str location "wallet.json")}
          clj->js
          coined
          change-dust!
-         (->Client storage)))
+         setup-save-loop!
+         (->Client)))
 
 (fix-bcoin-issue!)
