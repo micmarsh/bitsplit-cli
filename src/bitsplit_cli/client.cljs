@@ -5,19 +5,22 @@
          Operations send-amounts! new-address!)]
         [bitsplit.storage.protocol :only (all)]
         [bitsplit-cli.constants :only (DIR)]
-        [bitsplit-cli.utils :only (call-method)])
+        [bitsplit-cli.utils :only (call-method callback->channel)])
     (:require [cljs.core.async :as a]))
-(def coined (js/require "coined"))
 
-(defn- fix-bcoin-issue! []
-    (let [emitter (.-EventEmitter (js/require "events"))
-          old-emit (-> emitter .-prototype .-emit)]
-        (set! (-> emitter .-prototype .-emit)
-            (fn [& args]
-                (this-as self
-                    (when (not= (first args) "error")
-                        (.apply old-emit self
-                            (into-array args))))))))
+(def request
+  (partial
+    callback->channel
+    (js/require "request")))
+
+(defn address->balance [address]
+  (->>
+    (request
+      (str "https://blockchain.info/address/"
+        address "?format=json"))
+    (a/map< second) ; channel will contain "response" and "body" (json? idk)
+    (a/map< #(.parse js/JSON %))
+    (a/map< #(.-final_balance %))))
 
 (defn- account->amount [account]
     {(.getAddress account)
@@ -81,5 +84,3 @@
          change-dust!
          setup-save-loop!
          (->Client)))
-
-(fix-bcoin-issue!)
