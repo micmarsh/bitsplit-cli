@@ -15,7 +15,8 @@
                   [lein-npm "0.4.0"]]
 
         :node-dependencies [[prompt "0.2.13"]
-                            [coined "0.0.5"]]
+                            [bitcoinjs-lib "1.0.0"]
+                            [request "2.40.0"]]
 
         :cljsbuild {
           :builds [{

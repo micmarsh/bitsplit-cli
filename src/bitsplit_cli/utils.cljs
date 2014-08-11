@@ -21,10 +21,13 @@
   (let [return (chan)
         callback
           (fn [err & results]
-              (cond (= 1 (count results))
-                      (put! return (first results))
-                    (> (count results) 1)
-                      (put! return results))
+              (cond
+                (= 1 (count results))
+                  (put! return (first results))
+                (> (count results) 1)
+                  (put! return results)
+                err
+                  (put! return {:error err}))
               (close! return))
         total-args (concat args [callback])]
     (apply function total-args)
