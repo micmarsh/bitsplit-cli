@@ -34,8 +34,8 @@
     (addresses [this]
         (-> wallet .-addresses js->clj))
     (unspent-amounts [this]
-        (let [unspent (->> coin .-accounts (map account->amount))]
-            (apply merge unspent)))
+      (throw
+        (js/Error. "Synchronous unspent-amounts not a thing")))
     (unspent-channel [this]
         (let [return (a/chan)]
             (js/setInterval
