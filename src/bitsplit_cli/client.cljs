@@ -16,35 +16,53 @@
     (js/require "request")))
 
 (def urls
-  ["https://mainnet.helloblock.io/v1/addresses/$address$"
-   "https://blockchain.info/address/$address$?format=json"])
+  {:blockchain
+    "https://blockchain.info/unspent?address=$address$"
+   :helloblock
+    "https://mainnet.helloblock.io/v1/addresses/$address$/unspents"})
 
-(defn- balance [result]
-  (or (.-final_balance result) ; blockchain
-      (some-> result ; helloblock
-        (.-data)
-        (.-address)
-        (.-confirmedBalance))))
+(def standard-tx
+  {:blockchain
+    (fn [output]
+      {:tx-hash (.-tx_hash output)
+       :index (.-tx_index output)
+       :value (.-value output)})
+   :helloblock
+    (fn [output]
+      {:tx-hash (.-txHash output)
+       :index (.-index output)
+       :value (.-value output)})})
 
-(defn- parse-body [response]
-  (->> response
-    (second)
-    (.parse js/JSON)))
+(defn- response->txs [which result]
+  (if-let [array (or (.-unspent_outputs result) ; blockchain
+                     (some-> result ; helloblock
+                       (.-data)
+                       (.-unspents)))]
+    (map (which standard-tx) array)))
 
-(defn get-balance [urls address]
+(defn- parse-body [which response]
+  (try
+    (->> response
+      (second)
+      (.parse js/JSON)
+      (response->txs which))
+  (catch js/SyntaxError e)))
+
+(defn get-unspents [urls address]
   (go
-    (if-let [url (-> urls first (.replace "$address$" address))]
-      (let [response (<! (request url))]
+    (if-let [[which template] (first urls)]
+      (let [url (.replace template "$address$" address)
+            response (<! (request url))]
         (if-let [error (:error response)]
           (do
             (println "zomg error" error)
-            (<! (get-balance (rest urls) address)))
-          (-> response parse-body balance))))))
+            (<! (get-unspents (rest urls) address)))
+          (parse-body which response))))))
 
-(defn address->balance [urls address]
+(defn address->unspents [urls address]
   (go
-    (let [amount (<! (get-balance urls address))]
-      [address amount])))
+    (let [unspents (<! (get-unspents urls address))]
+      [address unspents])))
 
 (defn- send? [fee amount]
     (< (* 3 fee) amount))
@@ -60,12 +78,14 @@
         (-> wallet .-addresses js->clj))
     (unspent-amounts [this]
       (let [my-addrs (addresses this)]
+        (println "our addresses" my-addrs)
         (if (empty? my-addrs)
           (go nil)
           (->> my-addrs
-            (map (partial address->balance urls))
+            (map (partial address->unspents urls))
             (a/merge)
-            (a/into { })))))
+            (a/into { })
+            (a/map< (fn[x] (println "sup got some txs" x) x))))))
     (unspent-channel [this]
       (let [return (a/chan)]
         (js/setInterval
