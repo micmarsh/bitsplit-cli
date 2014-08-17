@@ -16,10 +16,15 @@
     (js/require "request")))
 
 (def urls
-  ["https://blockchain.info/address/$address$?format=json"])
+  ["https://mainnet.helloblock.io/v1/addresses/$address$"
+   "https://blockchain.info/address/$address$?format=json"])
 
 (defn- balance [result]
-  (or (.-final_balance result)))
+  (or (.-final_balance result)
+      (some-> result
+        .-data
+        .-address
+        .-confirmedBalance)))
 
 (defn- parse-body [response]
   (->> response
@@ -36,8 +41,19 @@
             (a/<! (get-balance (rest urls) address)))
           (-> response parse-body balance))))))
 
+(defn address->balance [urls address]
+  (go
+    (let [amount (a/<! (get-balance urls address))]
+      [address amount])))
+
+
 (defn- send? [fee amount]
     (< (* 3 fee) amount))
+
+(defn- safe-put! [channel item]
+  (println "yay safe putting" item)
+  (when-not (nil? item)
+    (a/put! channel item)))
 
 (defrecord Client [wallet]
     Queries
@@ -45,20 +61,18 @@
         (-> wallet .-addresses js->clj))
     (unspent-amounts [this]
       (let [my-addrs (addresses this)]
-        (println "read addresses" my-addrs)
         (if-not (empty? my-addrs)
-          (let [amount-chan
-                 (->> my-addrs
-                    (map (partial get-balance urls))
-                    a/merge (a/into [ ]))]
-            (a/map< (fn [x] (println x) (zipmap my-addrs x)) amount-chan)))))
+          (->> my-addrs
+            (map (partial address->balance urls))
+            a/merge
+            (a/into { }))
+          (go nil))))
     (unspent-channel [this]
       (let [return (a/chan)]
-        (println "starting unspent loop")
         (js/setInterval
-          #(if-let [unspents (unspent-amounts this)]
+          #(let [unspents (unspent-amounts this)]
             (a/take! unspents
-              (partial a/put! return)))
+              (partial safe-put! return)))
           10000)
         return))
     Operations
@@ -87,7 +101,7 @@
 (defn new-client [location]
     (->Client #js {:addresses
         #js ["1LXv8VR7XMaCNAqui9hUicfsZqs4bGFpX4"
-             "1GZRg3CHErJNsgoN92JAQzeEzNehMHYSX"]})
+             "19eprtsSudARY78i9WRegjmG5DW5XTMZ4S"]})
     #_(-> {:db
           {:type "tiny" :path
             (str location "tinydb")}

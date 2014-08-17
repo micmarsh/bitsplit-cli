@@ -46,12 +46,9 @@
 (defn start-repl []
     (.start prompt)
     ; not really tied to repl in long term, but whatever
-    (println "starting repl")
     (sync-addresses! system)
-    (println "synced addresses, yo")
     (exec-cmd "list")
     (let [unspent-results (handle-unspents! apply-percentages system)]
-      (println "some unspents" unspent-results)
       (go-loop [result (<! unspent-results)]
         (println (type result))
         (recur (<! unspent-results))))
