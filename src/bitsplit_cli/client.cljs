@@ -10,6 +10,9 @@
     (:use-macros
         [cljs.core.async.macros :only (go)]))
 
+(def Transaction
+  (.-Transaction (js/require "bitcoinjs-lib")))
+
 (def request
   (partial
     callback->channel
@@ -64,6 +67,12 @@
     (let [unspents (<! (get-unspents urls address))]
       [address unspents])))
 
+(defn new-tx [[address unspents]]
+  (doseq [tx [(Transaction.)]
+          {:keys [tx-hash index]} unspents]
+    (println tx-hash index unspents)
+    (.addInput tx tx-hash index)))
+
 (defn- send? [fee amount]
     (< (* 3 fee) amount))
 
@@ -84,8 +93,7 @@
           (->> my-addrs
             (map (partial address->unspents urls))
             (a/merge)
-            (a/into { })
-            (a/map< (fn[x] (println "sup got some txs" x) x))))))
+            (a/into { })))))
     (unspent-channel [this]
       (let [return (a/chan)]
         (js/setInterval
@@ -96,13 +104,9 @@
         return))
     Operations
     (send-amounts! [this amounts]
-        #_(a/merge
-          (for [[from splits] amounts
-                [to amount] splits
-                :when (send? (.-fee coin) amount)]
-            (let [account (aget (.-aaccounts coin) from)]
-              (println from to amount)
-              (call-method coin "sendFrom" account to amount)))))
+      (println "here are some unspents" amounts)
+      (let [txs (map new-tx amounts)]
+        (println "yay some new objects" txs)))
     (new-address! [this]
         #_(-> coin
             .createAccount

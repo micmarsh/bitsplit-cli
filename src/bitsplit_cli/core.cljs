@@ -47,7 +47,7 @@
     ; not really tied to repl in long term, but whatever
     (sync-addresses! system)
     (exec-cmd "list")
-    (let [unspent-results (handle-unspents! identity system)]
+    (let [unspent-results (handle-unspents! #(identity %2) system)]
       (go-loop [result (<! unspent-results)]
         (println (type result))
         (recur (<! unspent-results))))
