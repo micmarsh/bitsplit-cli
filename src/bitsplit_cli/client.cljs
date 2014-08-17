@@ -4,74 +4,21 @@
         (Queries addresses unspent-amounts unspent-channel
          Operations send-amounts! new-address!)]
         [bitsplit.storage.protocol :only (all)]
-        [bitsplit-cli.constants :only (DIR)]
-        [bitsplit-cli.utils :only (call-method callback->channel)])
-    (:require [cljs.core.async :refer (<!) :as a])
+        [bitsplit-cli.constants :only (DIR)])
+    (:require [bitsplit-cli.client.network :refer (address->unspents)]
+              [cljs.core.async :as a])
     (:use-macros
         [cljs.core.async.macros :only (go)]))
 
 (def Transaction
   (.-Transaction (js/require "bitcoinjs-lib")))
 
-(def request
-  (partial
-    callback->channel
-    (js/require "request")))
-
-(def urls
-  {:blockchain
-    "https://blockchain.info/unspent?address=$address$"
-   :helloblock
-    "https://mainnet.helloblock.io/v1/addresses/$address$/unspents"})
-
-(def standard-tx
-  {:blockchain
-    (fn [output]
-      {:tx-hash (.-tx_hash output)
-       :index (.-tx_index output)
-       :value (.-value output)})
-   :helloblock
-    (fn [output]
-      {:tx-hash (.-txHash output)
-       :index (.-index output)
-       :value (.-value output)})})
-
-(defn- response->txs [which result]
-  (if-let [array (or (.-unspent_outputs result) ; blockchain
-                     (some-> result ; helloblock
-                       (.-data)
-                       (.-unspents)))]
-    (map (which standard-tx) array)))
-
-(defn- parse-body [which response]
-  (try
-    (->> response
-      (second)
-      (.parse js/JSON)
-      (response->txs which))
-  (catch js/SyntaxError e)))
-
-(defn get-unspents [urls address]
-  (go
-    (if-let [[which template] (first urls)]
-      (let [url (.replace template "$address$" address)
-            response (<! (request url))]
-        (if-let [error (:error response)]
-          (do
-            (println "zomg error" error)
-            (<! (get-unspents (rest urls) address)))
-          (parse-body which response))))))
-
-(defn address->unspents [urls address]
-  (go
-    (let [unspents (<! (get-unspents urls address))]
-      [address unspents])))
-
 (defn new-tx [[address unspents]]
-  (doseq [tx [(Transaction.)]
-          {:keys [tx-hash index]} unspents]
-    (println tx-hash index unspents)
-    (.addInput tx tx-hash index)))
+  (let [tx (Transaction.)]
+    (doseq [{:keys [tx-hash index]} unspents]
+      (println tx-hash index unspents)
+      (.addInput tx tx-hash index))
+    tx))
 
 (defn- send? [fee amount]
     (< (* 3 fee) amount))
@@ -103,35 +50,21 @@
           10000)
         return))
     Operations
-    (send-amounts! [this amounts]
-      (println "here are some unspents" amounts)
-      (let [txs (map new-tx amounts)]
-        (println "yay some new objects" txs)))
-    (new-address! [this]
-        #_(-> coin
-            .createAccount
-            .getAddress)))
+    (send-amounts! [this info]
+      (let [{:keys [percentages unspents]} info
+            txs (map new-tx unspents)]
+        (println "yay some new txs" txs)
+        ; TODO here
+        ;  * use unspents->amounts to get a more traditiaonl {addr amount} thingy
+        ;  * can use stuff from core.calculcate to build thingy of address to send to
+        ;  * then, will be able to add appropriate output address and amount for each tx
+        ;  * notes on that: should group txs by address, so can sign w/ correct private keys
+        ;    when the right time comes. according to examples, once for each input (thumbsup)
+        ))
+    (new-address! [this] ))
 
-(defn- change-dust! [coin]
-    (set! (.-dust coin) 1)
-    coin)
-
-(defn setup-save-loop! [coin]
-  (js/setInterval
-    #(.saveWallet coin) 10000)
-  coin)
 
 (defn new-client [location]
     (->Client #js {:addresses
         #js ["1LXv8VR7XMaCNAqui9hUicfsZqs4bGFpX4"
-             "19eprtsSudARY78i9WRegjmG5DW5XTMZ4S"]})
-    #_(-> {:db
-          {:type "tiny" :path
-            (str location "tinydb")}
-         :wallet
-            (str location "wallet.json")}
-         clj->js
-         coined
-         change-dust!
-         setup-save-loop!
-         (->Client)))
+             "19eprtsSudARY78i9WRegjmG5DW5XTMZ4S"]}))

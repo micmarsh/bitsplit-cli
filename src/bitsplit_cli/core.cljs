@@ -42,12 +42,16 @@
           seq
           (= (take 4 command))))
 
+(defn- grab-percentages [per unspents]
+  {:percentages per
+   :unspents unspents})
+
 (defn start-repl []
     (.start prompt)
     ; not really tied to repl in long term, but whatever
     (sync-addresses! system)
     (exec-cmd "list")
-    (let [unspent-results (handle-unspents! #(identity %2) system)]
+    (let [unspent-results (handle-unspents! grab-percentages system)]
       (go-loop [result (<! unspent-results)]
         (println (type result))
         (recur (<! unspent-results))))
