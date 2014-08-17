@@ -6,7 +6,7 @@
         [bitsplit.storage.protocol :only (all)]
         [bitsplit-cli.constants :only (DIR)]
         [bitsplit-cli.utils :only (call-method callback->channel)])
-    (:require [cljs.core.async :as a])
+    (:require [cljs.core.async :refer (<!) :as a])
     (:use-macros
         [cljs.core.async.macros :only (go)]))
 
@@ -20,11 +20,11 @@
    "https://blockchain.info/address/$address$?format=json"])
 
 (defn- balance [result]
-  (or (.-final_balance result)
-      (some-> result
-        .-data
-        .-address
-        .-confirmedBalance)))
+  (or (.-final_balance result) ; blockchain
+      (some-> result ; helloblock
+        (.-data)
+        (.-address)
+        (.-confirmedBalance))))
 
 (defn- parse-body [response]
   (->> response
@@ -34,18 +34,17 @@
 (defn get-balance [urls address]
   (go
     (if-let [url (-> urls first (.replace "$address$" address))]
-      (let [response (a/<! (request url))]
+      (let [response (<! (request url))]
         (if-let [error (:error response)]
           (do
             (println "zomg error" error)
-            (a/<! (get-balance (rest urls) address)))
+            (<! (get-balance (rest urls) address)))
           (-> response parse-body balance))))))
 
 (defn address->balance [urls address]
   (go
-    (let [amount (a/<! (get-balance urls address))]
+    (let [amount (<! (get-balance urls address))]
       [address amount])))
-
 
 (defn- send? [fee amount]
     (< (* 3 fee) amount))
@@ -61,12 +60,12 @@
         (-> wallet .-addresses js->clj))
     (unspent-amounts [this]
       (let [my-addrs (addresses this)]
-        (if-not (empty? my-addrs)
+        (if (empty? my-addrs)
+          (go nil)
           (->> my-addrs
             (map (partial address->balance urls))
-            a/merge
-            (a/into { }))
-          (go nil))))
+            (a/merge)
+            (a/into { })))))
     (unspent-channel [this]
       (let [return (a/chan)]
         (js/setInterval
