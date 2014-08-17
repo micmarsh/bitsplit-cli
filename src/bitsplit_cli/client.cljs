@@ -1,11 +1,8 @@
 (ns bitsplit-cli.client
-    (:use
-        [bitsplit.client.protocol :only
-        (Queries addresses unspent-amounts unspent-channel
-         Operations send-amounts! new-address!)]
-        [bitsplit.storage.protocol :only (all)]
-        [bitsplit-cli.constants :only (DIR)])
-    (:require [bitsplit-cli.client.network :refer (address->unspents)]
+    (:require [bitsplit-cli.client.network :refer (address->unspents urls)]
+              [bitsplit.client.protocol :refer
+                (Queries addresses unspent-amounts unspent-channel
+                 Operations send-amounts! new-address!)]
               [cljs.core.async :as a])
     (:use-macros
         [cljs.core.async.macros :only (go)]))
