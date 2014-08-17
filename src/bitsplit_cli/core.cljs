@@ -2,7 +2,6 @@
     (:use [cljs.core.async :only (chan put! <!)]
           [bitsplit.core :only (handle-unspents!)]
 
-          [bitsplit.utils.calculate :only (apply-percentages)]
           [bitsplit.client.protocol :only (unspent-channel send-amounts!)]
           [bitsplit.storage.protocol :only (all)]
 
@@ -48,7 +47,7 @@
     ; not really tied to repl in long term, but whatever
     (sync-addresses! system)
     (exec-cmd "list")
-    (let [unspent-results (handle-unspents! apply-percentages system)]
+    (let [unspent-results (handle-unspents! identity system)]
       (go-loop [result (<! unspent-results)]
         (println (type result))
         (recur (<! unspent-results))))
