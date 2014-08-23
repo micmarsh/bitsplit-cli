@@ -24,13 +24,19 @@
   ([ ]
     (load-wallet (str DIR "seed")))
   ([location]
-      (let [[seed index] (load-seed location)
+      (let [[seed i] (load-seed location)
             sha (.sha256 crypto seed)
-            wallet (Wallet. sha)]
-        (doseq [_ (range index)]
+            wallet (Wallet. sha ;TODO somehow this shit needs
+                (-> bitcoin .-networks .-testnet))]
+        (doseq [_ (range (js/Number i))]
           (.generateAddress wallet))
         (set! (.-location wallet) location)
         wallet))) ; TODO reference global testnet constant?
+
+(defn inc* [thing]
+  (-> thing
+    (js/Number)
+    (inc)))
 
 (defn generate-address! [wallet]
   (let [address (.generateAddress wallet)
@@ -38,5 +44,5 @@
         current (.readFileSync fs location)
         [seed i] (-> current (str) (.split "\n"))]
     (.writeFileSync fs location
-      (str seed \newline (inc i)))
+      (str seed \newline (inc* i)))
     address))

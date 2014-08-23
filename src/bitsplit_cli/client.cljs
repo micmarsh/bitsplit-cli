@@ -21,7 +21,6 @@
     (< (* 3 fee) amount))
 
 (defn- safe-put! [channel item]
-  (println "yay safe putting" item)
   (when-not (nil? item)
     (a/put! channel item)))
 

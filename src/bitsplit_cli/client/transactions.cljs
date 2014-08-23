@@ -20,9 +20,7 @@
 (def with-inputs! (partial merge-with add-inputs!))
 
 (defn- add-output! [tx send-to]
-  (println "dat map" send-to)
   (doseq [[address amount] send-to]
-    (println "adding sending of" amount "to" address )
     (.addOutput tx address amount))
   tx)
 
