@@ -10,17 +10,33 @@
 (def ncrypto (js/require "crypto"))
 
 (defn- load-seed [location]
-  (try
-    (.readFileSync fs location)
-    (catch js/Error e
-      (let [new-seed (.randomBytes ncrypto 256)]
-        (.writeFileSync fs location new-seed)
-        new-seed))))
+  (.split
+    (try
+      (str (.readFileSync fs location))
+      (catch js/Error e
+        (let [new-seed (.randomBytes ncrypto 256)
+              output (str new-seed \newline 0)]
+          (.writeFileSync fs location output)
+          output)))
+    "\n"))
 
 (defn load-wallet
   ([ ]
     (load-wallet (str DIR "seed")))
   ([location]
-      (let [seed (load-seed location)
-            sha (.sha256 crypto seed)]
-        (Wallet. sha)))) ; TODO reference global testnet constant?
+      (let [[seed index] (load-seed location)
+            sha (.sha256 crypto seed)
+            wallet (Wallet. sha)]
+        (doseq [_ (range index)]
+          (.generateAddress wallet))
+        (set! (.-location wallet) location)
+        wallet))) ; TODO reference global testnet constant?
+
+(defn generate-address! [wallet]
+  (let [address (.generateAddress wallet)
+        location (.-location wallet)
+        current (.readFileSync fs location)
+        [seed i] (-> current (str) (.split "\n"))]
+    (.writeFileSync fs location
+      (str seed \newline (inc i)))
+    address))

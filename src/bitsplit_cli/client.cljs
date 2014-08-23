@@ -5,6 +5,7 @@
               [bitsplit.utils.calculate :refer (apply-percentages)]
               [bitsplit-cli.client.network :refer (address->unspents urls)]
               [bitsplit-cli.client.transactions :as tx]
+              [bitsplit-cli.client.wallet :as wallet]
               [cljs.core.async :as a])
     (:use-macros
         [cljs.core.async.macros :only (go)]))
@@ -68,11 +69,10 @@
         ; TODO here
         ;  * push txs to a server
         ))
-    (new-address! [this] ))
+    (new-address! [this]
+      (wallet/generate-address! wallet)))
 
 
 (defn new-client [location]
-    (->Client #js {:addresses
-        #js ["1LXv8VR7XMaCNAqui9hUicfsZqs4bGFpX4"
-             "19eprtsSudARY78i9WRegjmG5DW5XTMZ4S"]
-        :getPrivateKeyForAddress (constantly "lolololololprivatekey")}))
+  (->Client (wallet/load-wallet)) ; no location for now
+)
