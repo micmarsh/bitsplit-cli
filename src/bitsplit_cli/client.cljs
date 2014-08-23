@@ -4,49 +4,10 @@
                  Operations send-amounts! new-address!)]
               [bitsplit.utils.calculate :refer (apply-percentages)]
               [bitsplit-cli.client.network :refer (address->unspents urls)]
+              [bitsplit-cli.client.transactions :as tx]
               [cljs.core.async :as a])
     (:use-macros
         [cljs.core.async.macros :only (go)]))
-
-(def bitcoin (js/require "bitcoinjs-lib"))
-
-(def Transaction (.-Transaction bitcoin))
-(def ECKey (.-ECKey bitcoin))
-
-(defn- new-txs []
-  (cons (Transaction.) (lazy-seq (new-txs))))
-
-(defn- make-txs [addresses]
-  (zipmap addresses (new-txs)))
-
-(defn add-inputs! [tx unspents]
-  (let [tx (Transaction.)]
-    (doseq [{:keys [tx-hash index]} unspents]
-      (println tx-hash index unspents)
-      (.addInput tx tx-hash index))
-    tx))
-
-(def with-inputs! (partial merge-with add-inputs!))
-
-(defn- add-output! [tx send-to]
-  (doseq [[address amount] send-to]
-    (println "adding sending of" amount "to" address )
-    (.addOutput tx address amount))
-  tx)
-
-(def with-outputs! (partial merge-with add-output!))
-
-(defn sign! [tx private-key]
-  (loop [inputs (.-in tx)
-         i 0]
-    (if (first inputs)
-      (do
-        (.sign tx i (ECKey. private-key))
-        (recur (rest inputs) (inc i)))
-      tx)))
-
-(def with-signature! (partial merge-with sign!))
-
 
 (defn- unspents->amounts [unspents]
   (into { }
@@ -98,16 +59,14 @@
             addrs (addresses this)
             amounts (unspents->amounts unspents)
             totals (apply-percentages percentages amounts) ; should prolly apply fee somewhere around here
-            txs (new-txs addrs)
+            txs (tx/make-txs addrs)
             keys (private-keys wallet addrs)]
-        (with-outputs! txs unspents)
-        (with-inputs! txs totals)
-        (with-signature! txs keys)
-        (println "yay some new txs" with-outputs priv-keys)
+        (tx/with-inputs! txs unspents)
+        (tx/with-outputs! txs totals)
+        (tx/with-signatures! txs keys)
+        (println "yay some new txs" txs)
         ; TODO here
-        ;  * then, will be able to add appropriate output address and amount for each tx
-        ;  * notes on that: should group txs by address, so can sign w/ correct private keys
-        ;    when the right time comes. according to examples, once for each input (thumbsup)
+        ;  * push txs to a server
         ))
     (new-address! [this] ))
 
