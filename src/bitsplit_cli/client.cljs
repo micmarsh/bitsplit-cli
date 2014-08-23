@@ -24,7 +24,6 @@
   (when-not (nil? item)
     (a/put! channel item)))
 
-
 (defn- address->private  [wallet address]
   (.getPrivateKeyForAddress wallet address))
 

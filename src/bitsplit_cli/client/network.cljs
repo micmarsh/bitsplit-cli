@@ -8,11 +8,15 @@
     callback->channel
     (js/require "request")))
 
-(def urls
+#_(def urls
   {:blockchain
     "https://blockchain.info/unspent?address=$address$"
    :helloblock
     "https://mainnet.helloblock.io/v1/addresses/$address$/unspents"})
+
+(def urls
+  {:helloblock
+    "https://testnet.helloblock.io/v1/addresses/$address$/unspents"})
 
 (def standard-tx
   {:blockchain
