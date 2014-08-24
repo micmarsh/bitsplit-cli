@@ -30,3 +30,8 @@
     (let [c (chan)]
         (close! c)
         c))
+
+(def chan?
+  (let [ctype (type (chan))]
+    (fn [thing]
+      (= (type thing) ctype))))
