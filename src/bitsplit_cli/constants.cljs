@@ -1,10 +1,9 @@
 (ns bitsplit-cli.constants)
 (def fs (js/require "fs"))
 
-
-(def HOME 
+(def HOME
     (let [env (.-env js/process)]
-        (or (aget env "HOME") 
+        (or (aget env "HOME")
             (aget env "USERPROFILE"))))
 (def DIR (str HOME "/.bitcoin/bitsplit/"))
 (when (not (.existsSync fs DIR))

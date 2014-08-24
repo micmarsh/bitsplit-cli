@@ -3,7 +3,8 @@
                 (Queries addresses unspent-amounts unspent-channel
                  Operations send-amounts! new-address!)]
               [bitsplit.utils.calculate :refer (apply-percentages)]
-              [bitsplit-cli.client.network :refer (address->unspents urls)]
+              [bitsplit-cli.client.network :refer
+                (address->unspents urls push-tx push-urls)]
               [bitsplit-cli.client.transactions :as tx]
               [bitsplit-cli.client.wallet :as wallet]
               [cljs.core.async :as a])
@@ -64,9 +65,11 @@
         (tx/with-outputs! txs totals)
         (tx/with-signatures! txs keys)
         (println "yay some new txs" txs)
-        ; TODO here
-        ;  * push txs to a server
-        ))
+        (->> txs
+          (vals)
+          (map (partial push-tx push-urls))
+          (a/merge)
+          (a/into [ ]))))
     (new-address! [this]
       (wallet/generate-address! wallet)))
 

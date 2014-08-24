@@ -3,10 +3,12 @@
             [cljs.core.async :refer (<!)])
   (:use-macros [cljs.core.async.macros :only (go)]))
 
-(def request
-  (partial
-    callback->channel
-    (js/require "request")))
+(def request (js/require "request"))
+(def get-request
+  (partial callback->channel request))
+(def post-request
+  (partial callback->channel
+    (.-post request)))
 
 #_(def urls
   {:blockchain
@@ -17,6 +19,10 @@
 (def urls
   {:helloblock
     "https://testnet.helloblock.io/v1/addresses/$address$/unspents"})
+
+(def push-urls
+  {:helloblock
+    "https://testnet.helloblock.io/v1/transactions"})
 
 (def standard-tx
   {:blockchain
@@ -49,7 +55,7 @@
   (go
     (if-let [[which template] (first urls)]
       (let [url (.replace template "$address$" address)
-            response (<! (request url))]
+            response (<! (get-request url))]
         (if-let [error (:error response)]
           (do
             (println "zomg error" error)
@@ -60,3 +66,18 @@
   (go
     (let [unspents (<! (get-unspents urls address))]
       [address unspents])))
+
+(defn push-tx [urls tx]
+  (go
+    (if-let [[which url] (first urls)]
+      (let [data (clj->js {:rawTxHex (.toHex tx)})
+            ch (-> {:uri url :json data}
+                  (clj->js) (post-request))
+            response (<! ch)]
+        (if-let [error (:error response)]
+          (do
+            (println "bad push req" error)
+            (<! (push-tx (rest urls) tx)))
+          (do
+            (println response)
+            response))))))

@@ -22,12 +22,12 @@
         callback
           (fn [err & results]
               (cond
+                err
+                  (put! return {:error err})
                 (= 1 (count results))
                   (put! return (first results))
                 (> (count results) 1)
-                  (put! return results)
-                err
-                  (put! return {:error err}))
+                  (put! return results))
               (close! return))
         total-args (concat args [callback])]
     (apply function total-args)
