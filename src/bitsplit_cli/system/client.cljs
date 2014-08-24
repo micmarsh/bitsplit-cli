@@ -40,13 +40,13 @@
     (empty?)
     (not)))
 
-(defrecord Client [wallet]
+(defrecord Client [wallet log]
     Queries
     (addresses [this]
         (-> wallet .-addresses js->clj))
     (unspent-amounts [this]
       (let [my-addrs (addresses this)]
-        (println "our addresses" my-addrs)
+        (log "Your Addresses: " my-addrs)
         (if (empty? my-addrs)
           (empty-chan)
           (->> my-addrs
@@ -82,5 +82,7 @@
       (wallet/generate-address! wallet)))
 
 
-(defn new-client [location]
-  (->Client (wallet/load-wallet location)))
+(defn new-client [location log]
+  (->Client
+    (wallet/load-wallet location)
+    log))

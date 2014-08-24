@@ -9,7 +9,8 @@
           [bitsplit-cli.utils.constants :only (base-directory splits-location)]
           [bitsplit-cli.utils.storage :only (sync-addresses!)]
           [bitplit-cli.system.client :only (new-client)]
-          [bitsplit-cli.commands :only (execute)])
+          [bitsplit-cli.commands :only (execute)]
+          [bitsplit-cli.utils.log :only (open-log)])
     (:use-macros
         [cljs.core.async.macros :only (go-loop)]))
 
@@ -20,8 +21,8 @@
 
 (set! *print-fn* #(.log js/console %))
 
-(def storage (->File splits-location))
-(def client (new-client (str base-directory "seed")))
+(def )
+(def )
 
 (def system {:storage storage :client client})
 (def build-cmd (partial assoc system :command))
@@ -49,6 +50,9 @@
 
 
 (defn -main [& args]
-  (let [unspent-results (handle-unspents! grab-percentages system)]))
+  (let [log (open-log "logfile")
+        storage (->File splits-location)
+        client (new-client (str base-directory "seed") log)
+        unspent-results (handle-unspents! grab-percentages system)]))
 
 (set! *main-cli-fn* -main)

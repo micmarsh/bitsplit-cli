@@ -13,7 +13,6 @@
 
 (defn add-inputs! [tx unspents]
   (doseq [{:keys [tx-hash index]} unspents]
-    (println tx-hash index unspents)
     (.addInput tx tx-hash index))
   tx)
 
