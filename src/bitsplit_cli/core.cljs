@@ -44,7 +44,7 @@
   {:percentages per
    :unspents unspents})
 
-(defn -main [& args]
+(defn -main [& [cmd & args]]
   (let [log (open-log (str base-directory "logfile"))
         storage (->File splits-location)
         client (new-client (str base-directory "seed") log)
