@@ -1,4 +1,4 @@
-(ns bitsplit-cli.client.transactions
+(ns bitplit-cli.system.client.transactions
   (:require [bitsplit.utils.calculate :refer (apply-diff)]))
 
 (def bitcoin (js/require "bitcoinjs-lib"))

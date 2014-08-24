@@ -5,10 +5,10 @@
           [bitsplit.client.protocol :only (unspent-channel send-amounts!)]
           [bitsplit.storage.protocol :only (all)]
 
-          [bitsplit-cli.filesystem :only (->File)]
-          [bitsplit-cli.constants :only (DIR SPLITS_LOCATION)]
+          [bitsplit-cli.system.splits :only (->File)]
+          [bitsplit-cli.utils.constants :only (base-directory splits-location)]
           [bitsplit-cli.utils.storage :only (sync-addresses!)]
-          [bitsplit-cli.client :only (new-client)]
+          [bitplit-cli.system.client :only (new-client)]
           [bitsplit-cli.commands :only (execute)])
     (:use-macros
         [cljs.core.async.macros :only (go-loop)]))
@@ -20,8 +20,8 @@
 
 (set! *print-fn* #(.log js/console %))
 
-(def storage (->File SPLITS_LOCATION))
-(def client (new-client DIR))
+(def storage (->File splits-location))
+(def client (new-client (str base-directory "seed")))
 
 (def system {:storage storage :client client})
 (def build-cmd (partial assoc system :command))

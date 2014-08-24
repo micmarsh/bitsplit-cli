@@ -1,4 +1,4 @@
-(ns bitsplit-cli.display)
+(ns bitsplit-cli.display.splits)
 
 (defn show-percent [big-dec]
     (-> big-dec

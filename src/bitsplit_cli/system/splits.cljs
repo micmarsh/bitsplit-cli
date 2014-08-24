@@ -1,21 +1,21 @@
-(ns bitsplit-cli.filesystem
-    (:use 
+(ns bitsplit-cli.system.splits
+    (:use
         [cljs.reader :only (read-string)]
-        [bitsplit.storage.protocol 
+        [bitsplit.storage.protocol
             :only (Storage all lookup save! delete!)]))
 
 (def fs (js/require "fs"))
 
 (def fake-file (atom { }))
 
-(defn- read-file 
+(defn- read-file
     ([filename]
         (read-file filename { }))
     ([filename default]
         (if (= filename "FAKE")
             @fake-file
             (if (.existsSync fs filename)
-                (->> filename 
+                (->> filename
                     (.readFileSync fs)
                     .toString
                     read-string)

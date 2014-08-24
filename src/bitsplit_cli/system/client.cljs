@@ -1,12 +1,12 @@
-(ns bitsplit-cli.client
+(ns bitplit-cli.system.client
     (:require [bitsplit.client.protocol :refer
                 (Queries addresses unspent-amounts unspent-channel
                  Operations send-amounts! new-address!)]
               [bitsplit.utils.calculate :refer (apply-percentages)]
-              [bitsplit-cli.client.network :refer
+              [bitplit-cli.system.client.network :refer
                 (address->unspents urls push-tx push-urls)]
-              [bitsplit-cli.client.transactions :as tx]
-              [bitsplit-cli.client.wallet :as wallet]
+              [bitplit-cli.system.client.transactions :as tx]
+              [bitplit-cli.system.client.wallet :as wallet]
               [bitsplit-cli.utils.async :refer (empty-chan)]
               [cljs.core.async :as a])
     (:use-macros
@@ -83,5 +83,4 @@
 
 
 (defn new-client [location]
-  (->Client (wallet/load-wallet)) ; no location for now
-)
+  (->Client (wallet/load-wallet location)))

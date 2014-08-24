@@ -2,7 +2,7 @@
     (:use [bitsplit.core :only (add-address! remove-address!)]
           [bitsplit.storage.protocol :only (all save!)]
           [bitsplit.client.protocol :only (new-address! unspent-amounts)]
-          [bitsplit-cli.display :only (render show-address)]))
+          [bitsplit-cli.display.splits :only (render show-address)]))
 
 (defn split-cmd [command]
     (-> command
@@ -42,7 +42,8 @@
 
     "unsplit" (partial change-split remove-address!)
 
-    "unspent"
+    "unspent" ;TODO this should use stuff from new "balances" ns, use som calculate get get amounts
+    ; that should also all be in own ns
       (fn [{:keys [client]}]
         (->> (unspent-amounts client)
           (map (partial show-amount last-rendered))

@@ -1,5 +1,5 @@
-(ns bitsplit-cli.client.wallet
-  (:require [bitsplit-cli.constants :refer (DIR)]))
+(ns bitplit-cli.system.client.wallet
+  (:require [bitsplit-cli.utils.constants :refer (base-directory)]))
 
 (def fs (js/require "fs"))
 
@@ -22,7 +22,7 @@
 
 (defn load-wallet
   ([ ]
-    (load-wallet (str DIR "seed")))
+    (load-wallet (str base-directory "seed")))
   ([location]
       (let [[seed i] (load-seed location)
             sha (.sha256 crypto seed)
