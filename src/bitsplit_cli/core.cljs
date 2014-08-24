@@ -12,6 +12,7 @@
           [bitsplit-cli.commands :only (execute)])
     (:use-macros
         [cljs.core.async.macros :only (go-loop)]))
+
 (def prompt (js/require "prompt"))
 (set! (.-message prompt) "")
 (set! (.-delimiter prompt) "")

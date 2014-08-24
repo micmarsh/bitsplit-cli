@@ -2,11 +2,12 @@
     (:require [bitsplit.client.protocol :refer
                 (Queries addresses unspent-amounts unspent-channel
                  Operations send-amounts! new-address!)]
-              [bitsplit.utils.calculate :refer (apply-percentages empty-chan)]
+              [bitsplit.utils.calculate :refer (apply-percentages)]
               [bitsplit-cli.client.network :refer
                 (address->unspents urls push-tx push-urls)]
               [bitsplit-cli.client.transactions :as tx]
               [bitsplit-cli.client.wallet :as wallet]
+              [bitsplit-cli.utils :refer (empty-chan)]
               [cljs.core.async :as a])
     (:use-macros
         [cljs.core.async.macros :only (go)]))
@@ -22,7 +23,6 @@
     (< (* 3 fee) amount))
 
 (defn- safe-put! [channel item]
-  (println "safe putting" item)
   (when-not (nil? item)
     (a/put! channel item)))
 
@@ -63,7 +63,7 @@
         return))
     Operations
     (send-amounts! [this info]
-      #_(let [{:keys [percentages unspents]} info
+      (let [{:keys [percentages unspents]} info
             addrs (addresses this)
             amounts (unspents->amounts unspents)
             totals (apply-percentages percentages amounts) ; should prolly apply fee somewhere around here
