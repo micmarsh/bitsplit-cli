@@ -2,7 +2,7 @@
     (:require [bitsplit.client.protocol :refer
                 (Queries addresses unspent-amounts unspent-channel
                  Operations send-amounts! new-address!)]
-              [bitsplit.utils.calculate :refer (apply-percentages)]
+              [bitsplit.utils.calculate :refer (apply-percentages empty-chan)]
               [bitsplit-cli.client.network :refer
                 (address->unspents urls push-tx push-urls)]
               [bitsplit-cli.client.transactions :as tx]
@@ -22,6 +22,7 @@
     (< (* 3 fee) amount))
 
 (defn- safe-put! [channel item]
+  (println "safe putting" item)
   (when-not (nil? item)
     (a/put! channel item)))
 
@@ -32,6 +33,13 @@
   (let [privates (map (partial address->private wallet) addresses)]
     (zipmap addresses privates)))
 
+(defn- unspents? [unspents]
+  (->> unspents
+    (map second)
+    (remove empty?)
+    (empty?)
+    (not)))
+
 (defrecord Client [wallet]
     Queries
     (addresses [this]
@@ -40,7 +48,7 @@
       (let [my-addrs (addresses this)]
         (println "our addresses" my-addrs)
         (if (empty? my-addrs)
-          (go nil)
+          (empty-chan)
           (->> my-addrs
             (map (partial address->unspents urls))
             (a/merge)
@@ -55,21 +63,21 @@
         return))
     Operations
     (send-amounts! [this info]
-      (let [{:keys [percentages unspents]} info
+      #_(let [{:keys [percentages unspents]} info
             addrs (addresses this)
             amounts (unspents->amounts unspents)
             totals (apply-percentages percentages amounts) ; should prolly apply fee somewhere around here
             txs (tx/make-txs addrs)
             keys (private-keys wallet addrs)]
-        (tx/with-inputs! txs unspents)
-        (tx/with-outputs! txs totals)
-        (tx/with-signatures! txs keys)
-        (println "yay some new txs" txs)
-        (->> txs
-          (vals)
-          (map (partial push-tx push-urls))
-          (a/merge)
-          (a/into [ ]))))
+        (when (unspents? unspents)
+          (tx/with-inputs! txs unspents)
+          (tx/with-outputs! txs totals)
+          (tx/with-signatures! txs keys)
+          (->> txs
+            (vals)
+            (map (partial push-tx push-urls))
+            (a/merge)
+            (a/into [ ])))))
     (new-address! [this]
       (wallet/generate-address! wallet)))
 

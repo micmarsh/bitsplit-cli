@@ -1,9 +1,9 @@
-(ns bitsplit-cli.client.transactions)
+(ns bitsplit-cli.client.transactions
+  (:require [bitsplit.utils.calculate :refer (apply-diff)]))
 
 (def bitcoin (js/require "bitcoinjs-lib"))
 
 (def Transaction (.-Transaction bitcoin))
-(def ECKey (.-ECKey bitcoin))
 
 (defn- new-txs []
   (cons (Transaction.) (lazy-seq (new-txs))))
@@ -19,10 +19,21 @@
 
 (def with-inputs! (partial merge-with add-inputs!))
 
+(def ^:private tx-fee 10000)
+
+(defn- output? [send-to]
+  (->> send-to
+    (map second)
+    (remove #{0})
+    (empty?)
+    (not)))
+
 (defn- add-output! [tx send-to]
-  (doseq [[address amount] send-to]
-    (.addOutput tx address amount))
-  tx)
+  (when (output? send-to)
+    (doseq [with-fee [(apply-diff (- tx-fee) send-to)]
+            [address amount] with-fee]
+      (.addOutput tx address amount))
+    tx))
 
 (def with-outputs! (partial merge-with add-output!))
 
@@ -31,7 +42,7 @@
          i 0]
     (if (first inputs)
       (do
-        (.sign tx i (ECKey. private-key))
+        (.sign tx i private-key)
         (recur (rest inputs) (inc i)))
       tx)))
 
