@@ -17,10 +17,6 @@ switch (args[0]) {
         daemon.stop();
         break;
 
-    case "help":
-        console.log("Usage: [start|stop]");
-        break;
-
     default:
         args.unshift(program)
         child_process.exec('node ' + args.join(' '), function (err, stdout, stderr) {
