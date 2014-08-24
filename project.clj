@@ -16,7 +16,8 @@
 
         :node-dependencies [[prompt "0.2.13"]
                             [bitcoinjs-lib "1.0.0"]
-                            [request "2.40.0"]]
+                            [request "2.40.0"]
+                            [daemonize2 "0.4.2"]]
 
         :cljsbuild {
           :builds [{

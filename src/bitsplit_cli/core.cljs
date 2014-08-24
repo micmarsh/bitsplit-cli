@@ -47,29 +47,8 @@
   {:percentages per
    :unspents unspents})
 
-(defn start-repl []
-    (.start prompt)
-    ; not really tied to repl in long term, but whatever
-    (sync-addresses! system)
-    (exec-cmd "list")
-    (let [unspent-results (handle-unspents! grab-percentages system)]
-      (go-loop [result (<! unspent-results)]
-        (println (type result))
-        (recur (<! unspent-results))))
-    (go-loop [command (<! (read-in))]
-        (if (exit? command)
-            (do (println "Shutting down...")
-                (.exit js/process))
-            (do
-                (exec-cmd command)
-                (recur (<! (read-in)))))))
 
 (defn -main [& args]
-  (if (empty? args)
-    (start-repl)
-    (->> args
-      (map #(str % \space))
-      (apply str)
-      exec-cmd)))
+  (let [unspent-results (handle-unspents! grab-percentages system)]))
 
 (set! *main-cli-fn* -main)
