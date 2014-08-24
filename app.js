@@ -22,8 +22,12 @@ switch (args[0]) {
         break;
 
     default:
-        child_process.execFile(program, args, { }, function (err, stdout, stderr) {
-            console.log(stdout.toString(), stderr.toString());
+        args.unshift(program)
+        child_process.exec('node ' + args.join(' '), function (err, stdout, stderr) {
+            if (err) {
+                console.log("error executing command: ", err);
+            }
+            console.log(stdout.toString());
         });
 
 }

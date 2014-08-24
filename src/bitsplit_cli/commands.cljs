@@ -69,6 +69,7 @@
 
 (defn- -execute [{:keys [command] :as system}]
     (let [[cmd & args] (split-cmd command)
+          _ ((commands "list") system)
           method (commands cmd)]
         (cond
             (nil? method)

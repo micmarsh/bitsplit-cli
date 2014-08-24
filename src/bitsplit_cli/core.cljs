@@ -21,9 +21,6 @@
 
 (set! *print-fn* #(.log js/console %))
 
-; (def build-cmd (partial assoc system :command))
-; (def exec-cmd (comp execute build-cmd))
-
 (defn- read-prompt [message]
     (let [return (chan 1)]
         (.get prompt message
@@ -44,13 +41,24 @@
   {:percentages per
    :unspents unspents})
 
-(defn -main [& [cmd & args]]
-  (let [log (open-log (str base-directory "logfile"))
-        storage (->File splits-location)
-        client (new-client (str base-directory "seed") log)
-        system {:storage storage :client client}
-        unspent-results (handle-unspents! grab-percentages system)]
-    (go-loop [_ (<! unspent-results)]
-      (recur (<! unspent-results)))))
+(def start? (partial = "start"))
+(def noop (constantly nil))
 
-(set! *main-cli-fn* -main)
+(defn -main [& [cmd & _ :as args]]
+  (let [storage (->File splits-location)
+        log (if (start? cmd) (open-log (str base-directory "logfile")) noop)
+        client (new-client (str base-directory "seed") log)
+        system {:storage storage :client client}]
+    (if (start? cmd)
+      (handle-unspents! grab-percentages system)
+      (let [build-cmd (partial assoc system :command)
+            exec-cmd (comp execute build-cmd)]
+        (exec-cmd (apply str (interpose \space args)))))))
+
+(defn- filter-stop [main]
+  (fn [& [cmd & _ :as args]]
+    (when-not (= "stop" cmd)
+      (apply main args))))
+
+(set! *main-cli-fn*
+  (filter-stop -main))
