@@ -40,10 +40,13 @@
     (empty?)
     (not)))
 
-(defrecord Client [wallet log]
+(defrecord Client [location log]
     Queries
     (addresses [this]
-        (-> wallet .-addresses js->clj))
+        (-> location
+          wallet/load-wallet
+          .-addresses
+          js->clj))
     (unspent-amounts [this]
       (let [my-addrs (addresses this)]
         (log "Your Addresses: " my-addrs)
@@ -66,9 +69,9 @@
       (let [{:keys [percentages unspents]} info
             addrs (addresses this)
             amounts (unspents->amounts unspents)
-            totals (apply-percentages percentages amounts) ; should prolly apply fee somewhere around here
+            totals (apply-percentages percentages amounts)
             txs (tx/make-txs addrs)
-            keys (private-keys wallet addrs)]
+            keys (private-keys (wallet/load-wallet location) addrs)]
         (when (unspents? unspents)
           (tx/with-inputs! txs unspents)
           (tx/with-outputs! txs totals)
@@ -79,10 +82,10 @@
             (a/merge)
             (a/into [ ])))))
     (new-address! [this]
-      (wallet/generate-address! wallet)))
+      (-> location
+        wallet/load-wallet
+        wallet/generate-address!)))
 
 
 (defn new-client [location log]
-  (->Client
-    (wallet/load-wallet location)
-    log))
+  (->Client location log))
