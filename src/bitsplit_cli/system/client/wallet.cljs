@@ -1,7 +1,6 @@
 (ns bitplit-cli.system.client.wallet
-  (:require [bitsplit-cli.utils.constants :refer (base-directory)]))
-
-(def fs (js/require "fs"))
+  (:require [bitsplit-cli.utils.constants :refer (base-directory)]
+            [bitsplit-cli.utils.storage :refer (read-file write-file)]))
 
 (def bitcoin (js/require "bitcoinjs-lib"))
 
@@ -9,22 +8,21 @@
 (def Wallet (.-Wallet bitcoin))
 (def ncrypto (js/require "crypto"))
 
-(defn- load-seed [location]
+(defn- load-wallet-file [location]
   (.split
-    (try
-      (str (.readFileSync fs location))
-      (catch js/Error e
-        (let [new-seed (.randomBytes ncrypto 256)
+      (read-file location
+        ; if nothing found
+        #(let [new-seed (.randomBytes ncrypto 256)
               output (str new-seed \newline 0)]
-          (.writeFileSync fs location output)
-          output)))
+          (write-file location output)
+          output))
     "\n"))
 
 (defn load-wallet
   ([ ]
     (load-wallet (str base-directory "seed")))
   ([location]
-      (let [[seed i] (load-seed location)
+      (let [[seed i] (load-wallet-file location)
             sha (.sha256 crypto seed)
             wallet (Wallet. sha ;TODO somehow this shit needs
                 (-> bitcoin .-networks .-testnet))]
@@ -41,8 +39,8 @@
 (defn generate-address! [wallet]
   (let [address (.generateAddress wallet)
         location (.-location wallet)
-        current (.readFileSync fs location)
+        current (read-file location)
         [seed i] (-> current (str) (.split "\n"))]
-    (.writeFileSync fs location
+    (write-file location
       (str seed \newline (inc* i)))
     address))

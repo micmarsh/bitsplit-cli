@@ -2,34 +2,15 @@
     (:use
         [cljs.reader :only (read-string)]
         [bitsplit.storage.protocol
-            :only (Storage all lookup save! delete!)]))
-
-(def fs (js/require "fs"))
-
-(def fake-file (atom { }))
-
-(defn- read-file
-    ([filename]
-        (read-file filename { }))
-    ([filename default]
-        (if (= filename "FAKE")
-            @fake-file
-            (if (.existsSync fs filename)
-                (->> filename
-                    (.readFileSync fs)
-                    .toString
-                    read-string)
-                default))))
-
-(defn- write-file [filename data]
-    (if (= filename "FAKE")
-        (reset! fake-file data)
-        (.writeFileSync fs filename data)))
+            :only (Storage all lookup save! delete!)]
+        [bitsplit-cli.utils.storage :only (read-file write-file)]))
 
 (defrecord File [location]
     Storage
     (all [this]
-        (read-file location))
+        (-> location
+          (read-file)
+          (read-string)))
     (lookup [this address]
         (let [full-splits (all this)]
             (get full-splits address)))
