@@ -21,12 +21,8 @@
 
 (set! *print-fn* #(.log js/console %))
 
-(def )
-(def )
-
-(def system {:storage storage :client client})
-(def build-cmd (partial assoc system :command))
-(def exec-cmd (comp execute build-cmd))
+; (def build-cmd (partial assoc system :command))
+; (def exec-cmd (comp execute build-cmd))
 
 (defn- read-prompt [message]
     (let [return (chan 1)]
@@ -48,11 +44,13 @@
   {:percentages per
    :unspents unspents})
 
-
 (defn -main [& args]
   (let [log (open-log "logfile")
         storage (->File splits-location)
         client (new-client (str base-directory "seed") log)
-        unspent-results (handle-unspents! grab-percentages system)]))
+        system {:storage storage :client client}
+        unspent-results (handle-unspents! grab-percentages system)]
+    (go-loop [_ (<! unspent-results)]
+      (recur (<! unspent-results)))))
 
 (set! *main-cli-fn* -main)
