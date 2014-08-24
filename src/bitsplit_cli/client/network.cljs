@@ -1,5 +1,5 @@
 (ns bitsplit-cli.client.network
-  (:require [bitsplit-cli.utils :refer (callback->channel)]
+  (:require [bitsplit-cli.utils.async :refer (callback->channel)]
             [cljs.core.async :refer (<!)])
   (:use-macros [cljs.core.async.macros :only (go)]))
 

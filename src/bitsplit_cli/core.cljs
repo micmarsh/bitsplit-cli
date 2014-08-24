@@ -7,7 +7,7 @@
 
           [bitsplit-cli.filesystem :only (->File)]
           [bitsplit-cli.constants :only (DIR SPLITS_LOCATION)]
-          [bitsplit-cli.utils :only (sync-addresses!)]
+          [bitsplit-cli.utils.storage :only (sync-addresses!)]
           [bitsplit-cli.client :only (new-client)]
           [bitsplit-cli.commands :only (execute)])
     (:use-macros

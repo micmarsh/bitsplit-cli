@@ -7,7 +7,7 @@
                 (address->unspents urls push-tx push-urls)]
               [bitsplit-cli.client.transactions :as tx]
               [bitsplit-cli.client.wallet :as wallet]
-              [bitsplit-cli.utils :refer (empty-chan)]
+              [bitsplit-cli.utils.async :refer (empty-chan)]
               [cljs.core.async :as a])
     (:use-macros
         [cljs.core.async.macros :only (go)]))
