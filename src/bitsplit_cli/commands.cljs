@@ -2,7 +2,9 @@
     (:use [bitsplit.core :only (add-address! remove-address!)]
           [bitsplit.storage.protocol :only (all save!)]
           [bitsplit.client.protocol :only (new-address! unspent-amounts)]
-          [bitsplit-cli.display.splits :only (render show-address)]))
+          [bitsplit-cli.display.splits :only (render show-address)]
+          [bitsplit-cli.utils.async :only (chan?)]
+          [cljs.core.async :only (take!)]))
 
 (defn split-cmd [command]
     (-> command
@@ -82,4 +84,9 @@
 
 (enable-console-print!)
 
-(def execute (comp println -execute))
+(defn print-chan [thing]
+  (if (chan? thing)
+    (take! thing println)
+    (println thing)))
+
+(def execute (comp print-chan -execute))
