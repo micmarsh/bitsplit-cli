@@ -45,7 +45,7 @@
    :unspents unspents})
 
 (defn -main [& args]
-  (let [log (open-log "logfile")
+  (let [log (open-log (str base-directory "logfile"))
         storage (->File splits-location)
         client (new-client (str base-directory "seed") log)
         system {:storage storage :client client}

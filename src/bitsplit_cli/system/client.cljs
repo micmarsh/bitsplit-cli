@@ -59,7 +59,7 @@
           #(let [unspents (unspent-amounts this)]
             (a/take! unspents
               (partial safe-put! return)))
-          100000)
+          10000)
         return))
     Operations
     (send-amounts! [this info]

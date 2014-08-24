@@ -8,6 +8,9 @@ switch (process.argv[2]) {
 
     case "start":
         daemon.start();
+        daemon.on('error', function (err, _) {
+            console.log("oh shit error", err)
+        });
         break;
 
     case "stop":
