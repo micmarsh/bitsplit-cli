@@ -12,6 +12,7 @@
   (zipmap addresses (new-txs)))
 
 (defn add-inputs! [tx unspents]
+  (println "adding some inputs")
   (doseq [{:keys [tx-hash index]} unspents]
     (.addInput tx tx-hash index))
   tx)
@@ -28,6 +29,7 @@
     (not)))
 
 (defn- add-output! [tx send-to]
+  (println "adding some outputs")
   (when (output? send-to)
     (doseq [with-fee [(apply-diff (- tx-fee) send-to)]
             [address amount] with-fee]
@@ -37,6 +39,7 @@
 (def with-outputs! (partial merge-with add-output!))
 
 (defn- sign! [tx private-key]
+  (println "signing a tx")
   (loop [inputs (.-ins tx)
          i 0]
     (if (first inputs)

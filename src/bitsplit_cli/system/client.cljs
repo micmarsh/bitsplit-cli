@@ -40,7 +40,7 @@
     (empty?)
     (not)))
 
-(defrecord Client [location log]
+(defrecord Client [location]
     Queries
     (addresses [this]
         (-> location
@@ -49,19 +49,18 @@
           js->clj))
     (unspent-amounts [this]
       (let [my-addrs (addresses this)]
-        (log "Your Addresses: " my-addrs)
         (if (empty? my-addrs)
           (empty-chan)
           (->> my-addrs
-            (map (partial address->unspents urls))
-            (a/merge)
-            (a/into { })))))
+               (map (partial address->unspents urls))
+               (a/merge)
+               (a/into { })))))
     (unspent-channel [this]
       (let [return (a/chan)]
         (js/setInterval
           #(let [unspents (unspent-amounts this)]
-            (a/take! unspents
-              (partial safe-put! return)))
+             (a/take! unspents
+                      (partial safe-put! return)))
           10000)
         return))
     Operations
@@ -86,6 +85,3 @@
         wallet/load-wallet
         wallet/generate-address!)))
 
-
-(defn new-client [location log]
-  (->Client location log))

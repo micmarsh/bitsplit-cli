@@ -8,7 +8,7 @@
           [bitsplit-cli.system.splits :only (->File)]
           [bitsplit-cli.utils.constants :only (base-directory splits-location)]
           [bitsplit-cli.utils.storage :only (sync-addresses!)]
-          [bitplit-cli.system.client :only (new-client)]
+          [bitplit-cli.system.client :only (->Client)]
           [bitsplit-cli.commands :only (execute)]
           [bitsplit-cli.utils.log :only (open-log)])
     (:use-macros
@@ -18,8 +18,6 @@
 (set! (.-message prompt) "")
 (set! (.-delimiter prompt) "")
 (set! (.-colors prompt) false)
-
-(set! *print-fn* #(.log js/console %))
 
 (defn- read-prompt [message]
     (let [return (chan 1)]
@@ -46,13 +44,15 @@
 
 (defn -main [& [cmd & _ :as args]]
   (let [storage (->File splits-location)
-        log (if (start? cmd) (open-log (str base-directory "logfile")) noop)
-        client (new-client (str base-directory "seed") log)
+        client (->Client (str base-directory "seed"))
         system {:storage storage :client client}]
     (if (start? cmd)
-      (handle-unspents! grab-percentages system)
+      (do
+        (set! *print-fn* (open-log (str base-directory "logfile")))
+        (handle-unspents! grab-percentages system))
       (let [build-cmd (partial assoc system :command)
             exec-cmd (comp execute build-cmd)]
+        (set! *print-fn* #(.log js/console %))
         (exec-cmd (apply str (interpose \space args)))))))
 
 (defn- filter-stop [main]
