@@ -33,7 +33,7 @@
   (when (output? send-to)
     (doseq [with-fee [(apply-diff (- tx-fee) send-to)]
             [address amount] with-fee]
-      (.addOutput tx address amount))
+      (.addOutput tx address (.floor js/Math amount)))
     tx))
 
 (def with-outputs! (partial merge-with add-output!))
