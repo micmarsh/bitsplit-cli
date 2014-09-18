@@ -46,9 +46,12 @@
   (let [storage (->File splits-location)
         client (->Client (str base-directory "seed"))
         system {:storage storage :client client}]
-    (if (start? cmd)
+    (if  (or (= "start-debug" cmd) (start? cmd))
       (do
-        (set! *print-fn* (open-log (str base-directory "logfile")))
+        (set! *print-fn*
+              (if (start? cmd)
+                (open-log (str base-directory "logfile"))
+                #(.log js/console %)))
         (handle-unspents! grab-percentages system))
       (let [build-cmd (partial assoc system :command)
             exec-cmd (comp execute build-cmd)]
