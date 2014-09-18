@@ -6,7 +6,7 @@
 (def Transaction (.-Transaction bitcoin))
 
 (defn- new-txs []
-  (cons (Transaction.) (lazy-seq (new-txs))))
+  (lazy-seq (cons (Transaction.) (new-txs))))
 
 (defn make-txs [addresses]
   (zipmap addresses (new-txs)))
@@ -33,7 +33,9 @@
   (when (output? send-to)
     (doseq [with-fee [(apply-diff (- tx-fee) send-to)]
             [address amount] with-fee]
-      (.addOutput tx address (.floor js/Math amount)))
+      (println "sending" amount "to" address)
+      (when (< 0 amount)
+        (.addOutput tx address (.floor js/Math amount))))
     tx))
 
 (def with-outputs! (partial merge-with add-output!))
