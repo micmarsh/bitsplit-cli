@@ -4,7 +4,7 @@
                  Operations send-amounts! new-address!)]
               [bitsplit.utils.calculate :refer (apply-percentages)]
               [bitplit-cli.system.client.network :refer
-                (address->unspents urls push-tx push-urls)]
+                (address->unspents push-tx)]
               [bitplit-cli.system.client.transactions :as tx]
               [bitplit-cli.system.client.wallet :as wallet]
               [bitsplit-cli.utils.async :refer (empty-chan)]
@@ -41,27 +41,27 @@
     (not)))
 
 (defrecord Client [location]
-    Queries
+  Queries
     (addresses [this]
-        (-> location
-          wallet/load-wallet
-          .-addresses
-          js->clj))
+      (-> location
+            wallet/load-wallet
+            .-addresses
+            js->clj))
     (unspent-amounts [this]
       (let [my-addrs (addresses this)]
         (if (empty? my-addrs)
           (empty-chan)
           (->> my-addrs
-               (map (partial address->unspents urls))
+               (map (partial address->unspents :test))
                (a/merge)
                (a/into { })))))
     (unspent-channel [this]
       (let [return (a/chan)]
         (js/setInterval
-          #(let [unspents (unspent-amounts this)]
-             (a/take! unspents
-                      (partial safe-put! return)))
-          10000)
+         #(let [unspents (unspent-amounts this)]
+            (a/take! unspents
+                     (partial safe-put! return)))
+         10000)
         return))
     Operations
     (send-amounts! [this info]
@@ -76,12 +76,12 @@
           (tx/with-outputs! txs totals)
           (tx/with-signatures! txs keys)
           (->> txs
-            (vals)
-            (map (partial push-tx push-urls))
-            (a/merge)
-            (a/into [ ])))))
+               (vals)
+               (map (partial push-tx :test))
+               (a/merge)
+               (a/into [ ])))))
     (new-address! [this]
       (-> location
-        wallet/load-wallet
-        wallet/generate-address!)))
+          wallet/load-wallet
+          wallet/generate-address!)))
 

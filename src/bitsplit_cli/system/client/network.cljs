@@ -10,19 +10,21 @@
   (partial callback->channel
     (.-post request)))
 
-#_(def urls
-  {:blockchain
-    "https://blockchain.info/unspent?address=$address$"
-   :helloblock
-    "https://mainnet.helloblock.io/v1/addresses/$address$/unspents"})
-
-(def urls
-  {:helloblock
-    "https://testnet.helloblock.io/v1/addresses/$address$/unspents"})
-
-(def push-urls
-  {:helloblock
-    "https://testnet.helloblock.io/v1/transactions"})
+(def all-urls
+  {:real
+   {:unspents
+    {:blockchain
+     "https://blockchain.info/unspent?address=$address$"
+     :helloblock
+     "https://mainnet.helloblock.io/v1/addresses/$address$/unspents"}
+    :push { }}
+   :test
+   {:unspents
+    {:helloblock
+     "https://testnet.helloblock.io/v1/addresses/$address$/unspents"}
+    :push
+    {:helloblock
+     "https://testnet.helloblock.io/v1/transactions"}}})
 
 (def standard-tx
   {:blockchain
@@ -51,33 +53,35 @@
       (response->txs which))
   (catch js/SyntaxError e)))
 
-(defn get-unspents [urls address]
-  (go
-    (if-let [[which template] (first urls)]
-      (let [url (.replace template "$address$" address)
-            response (<! (get-request url))]
-        (if-let [error (:error response)]
-          (do
-            (println "zomg error" error)
-            (<! (get-unspents (rest urls) address)))
-          (parse-body which response))))))
+(defn get-unspents [environment address]
+  (let [urls (get-in all-urls [environment :unspents])]
+    (go
+     (if-let [[which template] (first urls)]
+       (let [url (.replace template "$address$" address)
+             response (<! (get-request url))]
+         (if-let [error (:error response)]
+           (do
+             (println "problem with getting unspents " error)
+             (<! (get-unspents (rest urls) address)))
+           (parse-body which response)))))))
 
-(defn address->unspents [urls address]
+(defn address->unspents [environment address]
   (go
-    (let [unspents (<! (get-unspents urls address))]
+    (let [unspents (<! (get-unspents environment address))]
       [address unspents])))
 
-(defn push-tx [urls tx]
-  (go
-    (if-let [[which url] (first urls)]
-      (let [data (clj->js {:rawTxHex (.toHex tx)})
-            ch (-> {:uri url :json data}
-                  (clj->js) (post-request))
-            response (<! ch)]
-        (if-let [error (:error response)]
-          (do
-            (println "bad push req" error)
-            (<! (push-tx (rest urls) tx)))
-          (do
-            (println response)
-            response))))))
+(defn push-tx [environment tx]
+  (let [urls (get-in all-urls [environment :push])]
+    (go
+     (if-let [[which url] (first urls)]
+       (let [data (clj->js {:rawTxHex (.toHex tx)})
+             ch (-> {:uri url :json data}
+                    (clj->js) (post-request))
+             response (<! ch)]
+         (if-let [error (:error response)]
+           (do
+             (println "bad push request" error)
+             (<! (push-tx (rest urls) tx)))
+           (do
+             (println "successfully pushed a transaction" response)
+             response)))))))
