@@ -37,7 +37,8 @@
   seq)
 
 (defn- parse-values [transforms map]
-  (doseq [transformed [(merge-with apply transforms map)]
+  (doseq [transformed [(merge-with #(%1 %2) transforms map)]
+          n [(println transformed)]
           [k v] transformed]
     (when (nil? v)
       (throw
