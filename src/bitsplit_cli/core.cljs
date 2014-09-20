@@ -10,7 +10,8 @@
           [bitsplit-cli.utils.storage :only (sync-addresses!)]
           [bitplit-cli.system.client :only (->Client)]
           [bitsplit-cli.commands :only (execute)]
-          [bitsplit-cli.utils.log :only (open-log)])
+          [bitsplit-cli.utils.log :only (open-log)]
+          [bitsplit-cli.app.options :only (args->options)])
     (:use-macros
         [cljs.core.async.macros :only (go-loop)]))
 
@@ -22,7 +23,8 @@
 (def noop (constantly nil))
 
 (defn -main [& [cmd & _ :as args]]
-  (let [storage (->File splits-location)
+  (let [options (args->options args)
+        storage (->File splits-location)
         client (->Client (str base-directory "seed"))
         system {:storage storage :client client}]
     (if  (or (= "start-debug" cmd) (start? cmd))

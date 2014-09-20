@@ -13,7 +13,7 @@
        (first)
        (transforms)))
 
-(defn transform-keys [transforms map]
+(defn- transform-keys [transforms map]
   (into { }
         (for [[k v] map]
           (let [new-key (transform-key transforms k)]
@@ -21,21 +21,29 @@
               [k nil]
               [new-key v])))))
 
-(defn verify-keys [map]
+(defn- verify-keys [map]
   (doseq [[k v] map]
-    (when-not v
+    (when (nil? v)
       (throw (js/Error. (str "Unrecognized option: " (name k))))))
   map)
 
-(defn error-on-dupes [seq]
+(defn- error-on-dupes [transforms seq]
   (doseq [seen [(atom #{})]
           item (take-nth 2 seq)]
     (if (contains? @seen item)
       (throw (js/Error. (str "Duplicate option: " item)))
-      (swap! seen conj item)))
+      (swap! seen
+             conj (transform-key transforms item))))
   seq)
 
-(def verify-values identity)
+(defn- parse-values [transforms map]
+  (doseq [transformed [(merge-with apply transforms map)]
+          [k v] transformed]
+    (when (nil? v)
+      (throw
+       (js/Error.
+        (str "Illegal value for option \"" (name k) "\": " (get map k))))))
+  map)
 
 (def digits (set (map str (range 10))))
 
@@ -45,13 +53,13 @@
     ("test" "testnet" "t") "test"
     nil))
 
-(defn parse-bool [value]
-  (case value
+(defn- parse-bool [value]
+   (case value
     "true" true
     "false" false
     nil))
 
-(defn parse-interval [value]
+(defn- parse-interval [value]
      (let [number (apply str (take-while digits value))
            unit (apply str (drop-while digits value))
            multiplier
@@ -74,12 +82,17 @@
    #{"-i" "--interval"} :interval
    #{"-v" "--verbose"} :verbose})
 
+(def defaults
+  {:network "main"
+   :interval "5m"
+   :verbose "false"})
+
 (def args->options
   (comp
-   verify-values
-   (partial merge-with apply val-transforms)
+   (partial parse-values val-transforms)
    verify-keys
+   (partial merge defaults)
    (partial transform-keys key-transforms)
    seq->map
-   error-on-dupes
+   (partial error-on-dupes key-transforms)
    rest))
