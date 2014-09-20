@@ -44,7 +44,7 @@
 
     "unsplit" (partial change-split remove-address!)
 
-    "unspent" ;TODO this should use stuff from new "balances" ns, use som calculate get get amounts
+    "unspent" ;TODO this should use stuff from new "balances" ns, use some calculate get get amounts
     ; that should also all be in own ns
       (fn [{:keys [client]}]
         (->> (unspent-amounts client)

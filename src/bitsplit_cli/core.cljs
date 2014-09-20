@@ -14,73 +14,12 @@
     (:use-macros
         [cljs.core.async.macros :only (go-loop)]))
 
-(def prompt (js/require "prompt"))
-(set! (.-message prompt) "")
-(set! (.-delimiter prompt) "")
-(set! (.-colors prompt) false)
-
-(defn- read-prompt [message]
-    (let [return (chan 1)]
-        (.get prompt message
-            (fn [err input]
-                (when (-> input nil? not)
-                    (put! return
-                        (aget input message)))))
-        return))
-
-(def read-in (partial read-prompt "bitsplit> "))
-
-(defn exit? [command]
-    (->> "exit"
-          seq
-          (= (take 4 command))))
-
 (defn- grab-percentages [per unspents]
   {:percentages per
    :unspents unspents})
 
 (def start? (partial = "start"))
 (def noop (constantly nil))
-
-(defn- seq->map [seq]
-  (->> seq
-       (partition 2)
-       (map vec)
-       (into { })))
-
-(defn transform-key [transforms key]
-  (->> transforms
-       (keys)
-       (filter #(contains? % key))
-       (first)
-       (transforms)))
-
-(defn transform-keys [transforms map]
-  (into { }
-        (for [[k v] map]
-          (let [new-key (transform-key transforms k)]
-            (if (nil? new-key)
-              [k nil]
-              [new-key v])))))
-
-(defn verify-options [options-map]
-  (doseq [[k v] options-map]
-    (when-not v
-      (throw (js/Error. (str "Unrecognized option: " k))))))
-
-(def key-transforms
-  {#{"-n" "--network"} "network"
-   #{"-i" "--interval"} "interval"
-   #{"-v" "--verbose"} "verbose"} )
-
-(def option-names #{"network" "interval" "verbose"})
-
-(def args->options
-  (comp
-   verify-options
-   (partial transform-keys key-transforms)
-   seq->map
-   rest))
 
 (defn -main [& [cmd & _ :as args]]
   (let [storage (->File splits-location)
