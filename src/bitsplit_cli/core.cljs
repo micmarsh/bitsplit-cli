@@ -22,19 +22,23 @@
 (def start? (partial = "start"))
 (def noop (constantly nil))
 
+(defn- build-system [options]
+  (let [storage (->File splits-location)
+        client (->Client (str base-directory "seed") options)]
+    {:storage storage :client client}))
+
 (defn -main [& [cmd & _ :as args]]
-  (let [options (args->options args)
-        storage (->File splits-location)
-        client (->Client (str base-directory "seed"))
-        system {:storage storage :client client}]
-    (if  (or (= "start-debug" cmd) (start? cmd))
-      (do
+  (let [options (args->options args)]
+    (if (start? cmd)
+      (let [system (build-system options)]
+        (println options)
         (set! *print-fn*
-              (if (start? cmd)
-                (open-log (str base-directory "logfile"))
-                #(.log js/console %)))
+              (if (:debug options)
+                #(.log js/console %)
+                (open-log (str base-directory "logfile"))))
         (handle-unspents! grab-percentages system))
-      (let [build-cmd (partial assoc system :command)
+      (let [options (args->options args)
+            build-cmd (partial assoc system :command)
             exec-cmd (comp execute build-cmd)]
         (set! *print-fn* #(.log js/console %))
         (exec-cmd (apply str (interpose \space args)))))))

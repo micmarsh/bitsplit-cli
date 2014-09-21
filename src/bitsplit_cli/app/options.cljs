@@ -37,14 +37,13 @@
   seq)
 
 (defn- parse-values [transforms map]
-  (doseq [transformed [(merge-with #(%1 %2) transforms map)]
-          n [(println transformed)]
-          [k v] transformed]
-    (when (nil? v)
-      (throw
-       (js/Error.
-        (str "Illegal value for option \"" (name k) "\": " (get map k))))))
-  map)
+  (let [transformed (merge-with #(%1 %2) transforms map)]
+    (doseq [[k v] transformed]
+      (when (nil? v)
+        (throw
+         (js/Error.
+          (str "Illegal value for option \"" (name k) "\": " (get map k))))))
+    transformed))
 
 (def digits (set (map str (range 10))))
 
@@ -61,32 +60,35 @@
     nil))
 
 (defn- parse-interval [value]
-     (let [number (apply str (take-while digits value))
-           unit (apply str (drop-while digits value))
-           multiplier
-           (case unit
-             "ms" 1
-             "s" 1000
-             "m" 60000
-             "h" 3600000
-             1)]
-       (when-not (some nil? [number unit])
-         (* (js/Number. number) multiplier))))
+  (let [number (apply str (take-while digits value))
+        unit (apply str (drop-while digits value))
+        multiplier
+        (case unit
+          "ms" 1
+          "s" 1000
+          "m" 60000
+          "h" 3600000
+          1)]
+    (when-not (some nil? [number unit])
+      (* (js/Number. number) multiplier))))
 
 (def val-transforms
   {:network parse-network
    :verbose parse-bool   
-   :interval parse-interval})
+   :interval parse-interval
+   :debug parse-bool})
 
 (def key-transforms
   {#{"-n" "--network"} :network
    #{"-i" "--interval"} :interval
-   #{"-v" "--verbose"} :verbose})
+   #{"-v" "--verbose"} :verbose
+   #{"-d" "--debug"} :debug})
 
 (def defaults
   {:network "main"
    :interval "5m"
-   :verbose "false"})
+   :verbose "false"
+   :debug "false"})
 
 (def args->options
   (comp

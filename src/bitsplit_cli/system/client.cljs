@@ -40,7 +40,7 @@
     (empty?)
     (not)))
 
-(defrecord Client [location]
+(defrecord Client [location options]
   Queries
     (addresses [this]
       (-> location
