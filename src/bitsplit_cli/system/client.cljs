@@ -52,7 +52,7 @@
         (if (empty? my-addrs)
           (empty-chan)
           (->> my-addrs
-               (map (partial address->unspents :test))
+               (map (partial address->unspents (:network options)))
                (a/merge)
                (a/into { })))))
     (unspent-channel [this]
@@ -77,7 +77,7 @@
           (tx/with-signatures! txs keys)
           (->> txs
                (vals)
-               (map (partial push-tx :test))
+               (map (partial push-tx (:network options)))
                (a/merge)
                (a/into [ ])))))
     (new-address! [this]

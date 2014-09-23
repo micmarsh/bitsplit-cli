@@ -11,14 +11,14 @@
     (.-post request)))
 
 (def all-urls
-  {:real
+  {"main"
    {:unspents
     {:blockchain
      "https://blockchain.info/unspent?address=$address$"
      :helloblock
      "https://mainnet.helloblock.io/v1/addresses/$address$/unspents"}
     :push { }}
-   :test
+   "test"
    {:unspents
     {:helloblock
      "https://testnet.helloblock.io/v1/addresses/$address$/unspents"}
