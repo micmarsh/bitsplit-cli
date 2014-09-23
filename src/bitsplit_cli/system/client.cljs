@@ -44,9 +44,9 @@
   Queries
     (addresses [this]
       (-> location
-            wallet/load-wallet
-            .-addresses
-            js->clj))
+            (wallet/load-wallet (:network options))
+            (.-addresses)
+            (js->clj)))
     (unspent-amounts [this]
       (let [my-addrs (addresses this)]
         (if (empty? my-addrs)
@@ -70,7 +70,9 @@
             amounts (unspents->amounts unspents)
             totals (apply-percentages percentages amounts)
             txs (tx/make-txs addrs)
-            keys (private-keys (wallet/load-wallet location) addrs)]
+            keys (private-keys
+                  (wallet/load-wallet location (:network options))
+                  addrs)]
         (when (unspents? unspents)
           (tx/with-inputs! txs unspents)
           (tx/with-outputs! txs totals)
@@ -82,6 +84,6 @@
                (a/into [ ])))))
     (new-address! [this]
       (-> location
-          wallet/load-wallet
+          (wallet/load-wallet (:network options))
           wallet/generate-address!)))
 

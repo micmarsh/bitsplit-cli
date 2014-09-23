@@ -19,17 +19,15 @@
     "\n"))
 
 (defn load-wallet
-  ([ ]
-    (load-wallet (str base-directory "seed")))
-  ([location]
-      (let [[seed i] (load-wallet-file location)
-            sha (.sha256 crypto seed)
-            wallet (Wallet. sha ;TODO somehow this shit needs
-                (-> bitcoin .-networks .-testnet))]
-        (doseq [_ (range (js/Number i))]
-          (.generateAddress wallet))
-        (set! (.-location wallet) location)
-        wallet))) ; TODO reference global testnet constant?
+  [location network]
+  (let [[seed i] (load-wallet-file location)
+        sha (.sha256 crypto seed)
+        wallet (Wallet. sha 
+                        (-> bitcoin .-networks (aget (str network "net"))))]
+    (doseq [_ (range (js/Number i))]
+       (.generateAddress wallet))
+     (set! (.-location wallet) location)
+     wallet))
 
 (defn inc* [thing]
   (-> thing
