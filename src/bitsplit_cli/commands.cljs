@@ -4,7 +4,8 @@
           [bitsplit.client.protocol :only (new-address! unspent-amounts)]
           [bitsplit-cli.display.splits :only (render show-address)]
           [bitsplit-cli.utils.async :only (chan?)]
-          [cljs.core.async :only (take!)]))
+          [cljs.core.async :only (map< take!)])
+    (:use-macros [cljs.core.async.macros :only (go)]))
 
 (defn split-cmd [command]
     (-> command
@@ -28,10 +29,10 @@
                :percent (js/Number percentage)})
             ((commands "list") system))))
 
-(defn show-amount [shortcuts [address amount]]
-  (str
-    (show-address shortcuts address)
-    " "  amount \newline))
+(defn unspent->string [[addr unspents]]
+  (str " " addr "  "
+       (->> unspents (map :value) (reduce +))
+       " satoshis\n"))
 
 (def ^:private commands {
     "list"
@@ -44,12 +45,13 @@
 
     "unsplit" (partial change-split remove-address!)
 
-    "unspent" ;TODO this should use stuff from new "balances" ns, use some calculate get get amounts
-    ; that should also all be in own ns
-      (fn [{:keys [client]}]
-        (->> (unspent-amounts client)
-          (map (partial show-amount last-rendered))
-          (apply str \newline)))
+    "unspent" 
+    (fn [{:keys [client]}]
+      (go
+       (let [unspents (<! (unspent-amounts client))]
+         (->> unspents
+              (map unspent->string)
+              (apply str \newline)))))
 
     "generate"
       (fn [{:keys [client storage] :as system}]
@@ -85,8 +87,9 @@
 (enable-console-print!)
 
 (defn print-chan [thing]
-  (if (chan? thing)
+  (try
     (take! thing println)
-    (println thing)))
+    (catch js/Error e
+      (println thing))))
 
 (def execute (comp print-chan -execute))
